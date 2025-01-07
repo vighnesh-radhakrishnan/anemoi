@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const ChampionShip = () => {
+const Calendar = () => {
   const [selectedYear, setSelectedYear] = useState("");
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -73,4 +73,4 @@ const ChampionShip = () => {
   );
 };
 
-export default ChampionShip;
+export default Calendar;

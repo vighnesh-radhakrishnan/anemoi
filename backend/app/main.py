@@ -41,3 +41,39 @@ async def get_event_schedule(year: int):
     except Exception as e:
         print(f"Error fetching event schedule: {e}")
         return JSONResponse(content={"error": "Data unavailable"})
+
+# Define the route for fetching session data
+@app.get("/session")
+async def get_session_data():
+    try:
+        # Hardcoded values for now
+        year = 2020
+        gp = "Austria"
+        identifier = "Race"
+
+        # Fetch the session
+        session = fastf1.get_session(year, gp, identifier)
+
+        if session is None:
+            return JSONResponse(content={"error": "Session data unavailable"})
+
+        # Load the session data (required to access timing/telemetry)
+        session.load()
+        results = session.results
+        print(f"DATA: {results}")
+
+        # Create a basic response with session details
+        session_data = {
+            "Year": year,
+            "GrandPrix": gp,
+            "Session": identifier,
+            "Date": str(session.date),
+            "Event": session.event['EventName'],
+            "Location": session.event['Location'],
+            # "Results": results,
+        }
+
+        return JSONResponse(content={"session": session_data})
+    except Exception as e:
+        print(f"Error fetching session data: {e}")
+        return JSONResponse(content={"error": "Session data unavailable"})

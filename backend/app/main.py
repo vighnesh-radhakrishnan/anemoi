@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import fastf1
+import pandas as pd
 
 app = FastAPI()
 
@@ -59,8 +60,22 @@ async def get_session_data():
 
         # Load the session data (required to access timing/telemetry)
         session.load()
-        results = session.results
-        print(f"DATA: {results}")
+
+        # Initialize results as None
+        results = None
+
+        # Validate and fetch session results
+        if session.results is not None and not session.results.empty:
+            # Handle unsupported data types in session.results
+            results = session.results.fillna('').to_dict(orient="records")
+            for result in results:
+                for key, value in result.items():
+                    if isinstance(value, pd.Timedelta):
+                        result[key] = str(value)  # Convert Timedelta to string
+                    elif pd.isna(value):  # Handle NaT or NaN
+                        result[key] = None
+        else:
+            print("Results data is unavailable or empty")
 
         # Create a basic response with session details
         session_data = {
@@ -70,10 +85,16 @@ async def get_session_data():
             "Date": str(session.date),
             "Event": session.event['EventName'],
             "Location": session.event['Location'],
-            # "Results": results,
         }
 
+        # Add results only if they are available
+        if results:
+            session_data["Results"] = results
+
+        print(f"Session Data: {session_data}")
+
         return JSONResponse(content={"session": session_data})
+
     except Exception as e:
         print(f"Error fetching session data: {e}")
         return JSONResponse(content={"error": "Session data unavailable"})

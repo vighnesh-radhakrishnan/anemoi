@@ -51,7 +51,7 @@ const GetSession = () => {
 
   return (
     <PageWrapper>
-      <h1>F1 Session Details</h1>
+      <h1>F1 Session</h1>
 
       <FormWrapper onSubmit={handleSubmit}>
         <input
@@ -83,7 +83,7 @@ const GetSession = () => {
 
       {sessionData && sessionData.session && loading !== true && (
         <div>
-          <SectionHeading>Session Details & Results</SectionHeading>
+          <SectionHeading>Overview</SectionHeading>
 
           <SessionDetails>
             <div>

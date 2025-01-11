@@ -4,7 +4,7 @@ export const PageWrapper = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  font-family: futura;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   color: #333;
   h1 {
     text-align: center;
@@ -23,20 +23,25 @@ export const FormWrapper = styled.form`
     border: 1px solid #ccc;
     border-radius: 5px;
     flex-grow: 1;
+    font-size: 16px;
     font-family: futura;
   }
 
   button {
     padding: 10px 20px;
-    background-color: #007bff;
+    background-color: #e10600;
     color: #fff;
-    border: none;
+    border: 2px solid #e10600;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    font-size: 16px;
+    font-family: futura;
 
     &:hover {
-      background-color: #0056b3;
+      background-color: #fff;
+      border: 2px solid #e10600;
+      color: #222;
     }
   }
 `;

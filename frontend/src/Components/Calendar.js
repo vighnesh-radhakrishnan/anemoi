@@ -1,5 +1,15 @@
 import React, { useState } from "react";
 import axios from "axios";
+import styled from "styled-components";
+import {
+  PageWrapper,
+  FormWrapper,
+  TableWrapper,
+  StyledTable,
+  LoadingMessage,
+  NoDataMessage,
+  Heading,
+} from "./Container";
 
 const Calendar = () => {
   const [selectedYear, setSelectedYear] = useState("");
@@ -24,9 +34,10 @@ const Calendar = () => {
   };
 
   return (
-    <div>
-      <h1>Season Calendar</h1>
-      <form onSubmit={handleSubmit}>
+    <PageWrapper>
+      <Heading>Season Schedule</Heading>
+
+      <FormWrapper onSubmit={handleSubmit}>
         <input
           type="number"
           placeholder="Enter Year"
@@ -34,42 +45,45 @@ const Calendar = () => {
           onChange={handleChange}
         />
         <button type="submit">Get Calendar</button>
-      </form>
+      </FormWrapper>
 
-      {loading ? (
-        <p>Loading...</p>
-      ) : events.length > 0 ? (
-        <table>
-          <thead>
-            <tr>
-              <th>Event</th>
-              <th>Country</th>
-              <th>Location</th>
-              <th>Date</th>
-              <th>EventFormat</th>
-              <th>Qualifying Date</th>
-              <th>Race Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {events.map((event, index) => (
-              <tr key={index}>
-                <td>{event.EventName || "N/A"}</td>
-                <td>{event.Country || "N/A"}</td>
-                <td>{event.Location || "N/A"}</td>
-                <td>{event.EventDate.split(" ")[0] || "N/A"}</td>
-                <td>{event.EventFormat || "N/A"}</td>
+      {loading && <LoadingMessage>Loading...</LoadingMessage>}
 
-                <td>{event.Qualifying.split(" ")[0] || "N/A"}</td>
-                <td>{event.Race.split(" ")[0] || "N/A"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <p>No events found for the selected year.</p>
+      {!loading && events.length === 0 && selectedYear && (
+        <NoDataMessage>No events found for the selected year.</NoDataMessage>
       )}
-    </div>
+
+      {!loading && events.length > 0 && (
+        <TableWrapper>
+          <StyledTable>
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Country</th>
+                <th>Location</th>
+                <th>Date</th>
+                <th>Event Format</th>
+                <th>Qualifying Date</th>
+                <th>Race Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {events.map((event, index) => (
+                <tr key={index}>
+                  <td>{event.EventName || "N/A"}</td>
+                  <td>{event.Country || "N/A"}</td>
+                  <td>{event.Location || "N/A"}</td>
+                  <td>{event.EventDate.split(" ")[0] || "N/A"}</td>
+                  <td>{event.EventFormat || "N/A"}</td>
+                  <td>{event.Qualifying.split(" ")[0] || "N/A"}</td>
+                  <td>{event.Race.split(" ")[0] || "N/A"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </StyledTable>
+        </TableWrapper>
+      )}
+    </PageWrapper>
   );
 };
 

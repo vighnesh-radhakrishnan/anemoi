@@ -16,7 +16,6 @@ export const FormWrapper = styled.form`
   flex-direction: row;
   gap: 15px;
   margin-bottom: 30px;
-  /* font-family: futura; */
 
   input {
     padding: 10px;
@@ -100,8 +99,12 @@ export const StyledTable = styled.table`
     font-weight: bold;
   }
 
-  tr:hover {
+  tbody tr:nth-child(even) {
     background-color: #f9f9f9;
+  }
+
+  tbody tr:hover {
+    background-color: #f1f1f1;
   }
 
   .driver-info {
@@ -121,4 +124,20 @@ export const StyledTable = styled.table`
       height: 40px;
     }
   }
+`;
+
+export const LoadingMessage = styled.p`
+  color: #555;
+  font-size: 1rem;
+`;
+
+export const NoDataMessage = styled.p`
+  color: #888;
+  font-size: 1rem;
+`;
+
+export const Heading = styled.h1`
+  text-align: center;
+  font-size: 2rem;
+  color: #333;
 `;

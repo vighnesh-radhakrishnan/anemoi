@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
 import { ReactComponent as AvatarIcon } from "../Icons/avatar.svg";
-
 import {
   PageWrapper,
   FormWrapper,
@@ -51,7 +50,7 @@ const GetSession = () => {
 
   return (
     <PageWrapper>
-      <h1>F1 Session</h1>
+      <h1>Get Session Data</h1>
 
       <FormWrapper onSubmit={handleSubmit}>
         <input

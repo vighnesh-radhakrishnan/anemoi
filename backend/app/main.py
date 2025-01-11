@@ -45,12 +45,12 @@ async def get_event_schedule(year: int):
 
 # Define the route for fetching session data
 @app.get("/session")
-async def get_session_data():
+async def get_session_data(year: int, gp:str, identifier: str):
     try:
         # Hardcoded values for now
-        year = 2020
-        gp = "Austria"
-        identifier = "Race"
+        # year = 2020
+        # gp = "Austria"
+        # identifier = "Race"
 
         # Fetch the session
         session = fastf1.get_session(year, gp, identifier)

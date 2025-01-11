@@ -147,7 +147,8 @@ const GetSession = () => {
                       <td>{result.Position}</td>
                       <td>
                         <div className="driver-info">
-                          {result.HeadshotUrl !== "None" ? (
+                          {result.HeadshotUrl !== "None" &&
+                          result.HeadshotUrl !== "" ? (
                             <img
                               src={result.HeadshotUrl}
                               alt={result.BroadcastName.toLowerCase()}
@@ -155,7 +156,7 @@ const GetSession = () => {
                           ) : (
                             <AvatarIcon />
                           )}
-                          <span>{result.BroadcastName}</span>
+                          <span>{result.FullName}</span>
                         </div>
                       </td>
                       <td>{result.TeamName}</td>

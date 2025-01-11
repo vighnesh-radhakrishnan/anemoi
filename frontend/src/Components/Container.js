@@ -10,17 +10,19 @@ export const TabWrapper = styled.div`
 
 export const Tab = styled.div`
   padding: 10px 20px;
-  font-size: 1rem;
-  cursor: pointer;
+  background-color: ${({ active }) => (active ? "#fff" : "#e10600")};
+  color: ${({ active }) => (active ? "#333" : "#fff")};
+  border: 2px solid #e10600;
   border-radius: 5px;
-  border: 1px solid #ddd;
-  background-color: ${({ active }) => (active ? "#e10600" : "#f4f4f4")};
-  color: ${({ active }) => (active ? "#fff" : "#333")};
-  transition: background-color 0.3s ease, color 0.3s ease;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 16px;
+  font-family: futura;
 
   &:hover {
-    background-color: #e10600;
-    color: #fff;
+    background-color: #fff;
+    border: 2px solid #e10600;
+    color: #222;
   }
 `;
 

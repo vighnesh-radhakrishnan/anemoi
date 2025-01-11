@@ -1,12 +1,7 @@
 import React, { useState } from "react";
 import Calendar from "./Components/Calendar"; // Import the Championship component
 import GetSession from "./Components/GetSession";
-import {
-  PageWrapper,
-  TabWrapper,
-  Tab,
-  TabContent,
-} from "./Components/Container";
+import { PageWrapper, TabWrapper, Tab } from "./Components/Container";
 
 function App() {
   const [activeTab, setActiveTab] = useState("session");

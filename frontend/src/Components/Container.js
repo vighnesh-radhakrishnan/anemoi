@@ -1,4 +1,28 @@
+// @ts-nocheck
 import styled from "styled-components";
+
+export const TabWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+`;
+
+export const Tab = styled.div`
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  background-color: ${({ active }) => (active ? "#e10600" : "#f4f4f4")};
+  color: ${({ active }) => (active ? "#fff" : "#333")};
+  transition: background-color 0.3s ease, color 0.3s ease;
+
+  &:hover {
+    background-color: #e10600;
+    color: #fff;
+  }
+`;
 
 export const PageWrapper = styled.div`
   max-width: 1200px;

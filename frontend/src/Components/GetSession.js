@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
 import { ReactComponent as AvatarIcon } from "../Icons/avatar.svg";
+import LoadingGif from "../Icons/loading.gif";
 import {
   PageWrapper,
   FormWrapper,
   TableWrapper,
   StyledTable,
   SessionDetails,
+  NoDataMessage,
 } from "./Container"; // Importing styled divs from `container.js`
 
 const SectionHeading = styled.h2`
@@ -23,7 +25,7 @@ const GetSession = () => {
   const [sessionIdentifier, setSessionIdentifier] = useState("");
   const [sessionData, setSessionData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(false);
 
   const handleYearChange = (event) => setSelectedYear(event.target.value);
   const handleGrandPrixChange = (event) => setGrandPrix(event.target.value);
@@ -33,16 +35,24 @@ const GetSession = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
-    setError(null);
+    setError(false);
+    setSessionData(null);
 
     try {
       const response = await axios.get(
         `http://localhost:8000/session?year=${selectedYear}&gp=${grandPrix}&identifier=${sessionIdentifier}`
       );
-      setSessionData(response.data);
+      if (response.data.error) {
+        setError(true);
+        setSessionData(null);
+      } else {
+        setError(false);
+        setSessionData(response.data);
+      }
     } catch (err) {
       console.error("Error fetching session data:", err);
-      setError("Failed to fetch session data. Please try again.");
+      setError(true);
+      setSessionData(null); // Ensure sessionData is reset in case of API errors
     } finally {
       setLoading(false);
     }
@@ -52,7 +62,12 @@ const GetSession = () => {
     <PageWrapper>
       <h1>Get Session Data</h1>
 
-      <FormWrapper onSubmit={handleSubmit}>
+      <FormWrapper
+        onSubmit={handleSubmit}
+        onInput={() => {
+          setError(false); // Clear the error message when user modifies input
+        }}
+      >
         <input
           type="number"
           placeholder="Enter Year"
@@ -77,8 +92,18 @@ const GetSession = () => {
         <button type="submit">Get Session</button>
       </FormWrapper>
 
-      {loading && <p>Loading...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {loading && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "50px",
+          }}
+        >
+          <img src={LoadingGif} alt="Loading..." width="150" height="150" />
+        </div>
+      )}
+      {/* {error && <p style={{ color: "red" }}>{error}</p>} */}
 
       {sessionData && sessionData.session && loading !== true && (
         <div>
@@ -168,9 +193,17 @@ const GetSession = () => {
               </StyledTable>
             </TableWrapper>
           ) : (
-            <p>No results available for this session.</p>
+            <NoDataMessage>
+              No results available for this session.
+            </NoDataMessage>
           )}
         </div>
+      )}
+      {error && !sessionData && !loading && (
+        <NoDataMessage>
+          Sorry, no session data found for the provided input. Please try again
+          with different values.
+        </NoDataMessage>
       )}
     </PageWrapper>
   );

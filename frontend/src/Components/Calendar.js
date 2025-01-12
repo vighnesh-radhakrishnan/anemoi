@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
@@ -6,10 +7,10 @@ import {
   FormWrapper,
   TableWrapper,
   StyledTable,
-  LoadingMessage,
   NoDataMessage,
   Heading,
 } from "./Container";
+import LoadingGif from "../Icons/loading.gif";
 
 const Calendar = () => {
   const [selectedYear, setSelectedYear] = useState("");
@@ -47,7 +48,17 @@ const Calendar = () => {
         <button type="submit">Get Calendar</button>
       </FormWrapper>
 
-      {loading && <LoadingMessage>Loading...</LoadingMessage>}
+      {loading && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "50px",
+          }}
+        >
+          <img src={LoadingGif} alt="Loading..." width="150" height="150" />
+        </div>
+      )}
 
       {!loading && events.length === 0 && selectedYear && (
         <NoDataMessage>No events found for the selected year.</NoDataMessage>

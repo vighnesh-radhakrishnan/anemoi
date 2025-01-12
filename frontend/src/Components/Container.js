@@ -152,14 +152,11 @@ export const StyledTable = styled.table`
   }
 `;
 
-export const LoadingMessage = styled.p`
-  color: #555;
-  font-size: 1rem;
-`;
-
 export const NoDataMessage = styled.p`
+  margin-top: 50px;
+  text-align: center;
   color: #888;
-  font-size: 1rem;
+  font-size: 1.1rem;
 `;
 
 export const Heading = styled.h1`

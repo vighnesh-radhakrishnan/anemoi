@@ -15,6 +15,10 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
+@app.get("/")
+def read_root():
+    return {"message": "Hello, Welcome to Anemoi!"}
+
 # Define the route for fetching event schedule
 @app.get("/events/{year}")
 async def get_event_schedule(year: int):

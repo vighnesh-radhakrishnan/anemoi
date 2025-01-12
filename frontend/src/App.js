@@ -4,7 +4,7 @@ import GetSession from "./Components/GetSession";
 import { PageWrapper, TabWrapper, Tab } from "./Components/Container";
 
 function App() {
-  const [activeTab, setActiveTab] = useState("session");
+  const [activeTab, setActiveTab] = useState("calendar");
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);

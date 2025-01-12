@@ -40,7 +40,7 @@ const GetSession = () => {
 
     try {
       const response = await axios.get(
-        `http://localhost:8000/session?year=${selectedYear}&gp=${grandPrix}&identifier=${sessionIdentifier}`
+        `https://anemoi-backend.onrender.com/session?year=${selectedYear}&gp=${grandPrix}&identifier=${sessionIdentifier}`
       );
       if (response.data.error) {
         setError(true);

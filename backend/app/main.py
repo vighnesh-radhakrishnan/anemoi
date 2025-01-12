@@ -48,14 +48,10 @@ async def get_event_schedule(year: int):
         return JSONResponse(content={"error": "Data unavailable"})
 
 # Define the route for fetching session data
-@app.get("/session")
-async def get_session_data(year: int, gp:str, identifier: str):
-    try:
-        # Hardcoded values for now
-        # year = 2020
-        # gp = "Austria"
-        # identifier = "Race"
 
+@app.get("/session")
+async def get_session_data(year: int, gp: str, identifier: str):
+    try:
         # Fetch the session
         session = fastf1.get_session(year, gp, identifier)
 
@@ -68,16 +64,22 @@ async def get_session_data(year: int, gp:str, identifier: str):
         # Initialize results as None
         results = None
 
-        # Validate and fetch session results
+        # Check if session results are available
         if session.results is not None and not session.results.empty:
-            # Handle unsupported data types in session.results
-            results = session.results.fillna('').to_dict(orient="records")
-            for result in results:
-                for key, value in result.items():
-                    if isinstance(value, pd.Timedelta):
-                        result[key] = str(value)  # Convert Timedelta to string
-                    elif pd.isna(value):  # Handle NaT or NaN
-                        result[key] = None
+            # Extract only the required fields from the session results
+            results = []
+            for _, row in session.results.iterrows():
+                result = {
+                    'Position': row['Position'],
+                    'HeadshotUrl': row['HeadshotUrl'],
+                    'BroadcastName': row['BroadcastName'],
+                    'FullName': row['FullName'],
+                    'TeamName': row['TeamName'],
+                    'Time': row['Time'] if isinstance(row['Time'], str) else str(row['Time']) if pd.notna(row['Time']) else None,
+                    'Status': row['Status'] if row['Status'] else None,
+                    'Points': row['Points'] if row['Points'] else None
+                }
+                results.append(result)
         else:
             print("Results data is unavailable or empty")
 

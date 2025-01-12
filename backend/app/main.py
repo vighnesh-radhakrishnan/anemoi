@@ -48,25 +48,24 @@ async def get_event_schedule(year: int):
         print(f"Error fetching event schedule: {e}")
         return JSONResponse(content={"error": "Data unavailable"})
 
+# Enable caching for fastf1 to improve performance
+fastf1.Cache.enable_cache('cache_directory')
+
 # In-memory session store
 session_store = {}
 
 # Function to load only required session data asynchronously
 async def fetch_session_data(year, gp, identifier):
-    # Check if session data is already in memory
+    # Check if session data is already cached
     if (year, gp, identifier) in session_store:
         return session_store[(year, gp, identifier)]
-    
-    # Fetch session data from fastf1
+
     try:
-        session = fastf1.get_session(year, gp, identifier)
-        if session is None:
-            return None
-        
-        # Asynchronous session loading
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, session.load)
-        
+        # Use fastf1 to fetch minimal session data
+        event = fastf1.get_event(year, gp)
+        session = event.get_session(identifier)
+        session.load_results()  # Only load results table
+
         # Process results only if they exist
         results = None
         if session.results is not None and not session.results.empty:
@@ -82,7 +81,7 @@ async def fetch_session_data(year, gp, identifier):
                 'Status': row['Status'],
                 'Points': row['Points']
             }, axis=1).tolist()
-        
+
         # Structure session data
         session_data = {
             "Year": year,
@@ -99,7 +98,7 @@ async def fetch_session_data(year, gp, identifier):
         return session_data
 
     except Exception as e:
-        print(f"Error loading session data: {e}")
+        print(f"Error fetching session data: {e}")
         return None
 
 @app.get("/session")
@@ -108,17 +107,34 @@ async def get_session_data(year: int, gp: str, identifier: str):
     try:
         # Fetch session data
         session_data = await fetch_session_data(year, gp, identifier)
-        
+
         # If session data is unavailable
         if session_data is None:
             return JSONResponse(content={"error": "Session data unavailable"}, status_code=404)
-        
+
         end_time = datetime.now()
         print(f"Response time: {end_time - start_time}")  # Log response time
-        
+
         # Return session data
         return JSONResponse(content={"session": session_data})
 
     except Exception as e:
         print(f"Error fetching session data: {e}")
         return JSONResponse(content={"error": "Session data unavailable"}, status_code=500)
+
+@app.get("/multi-session")
+async def get_multiple_sessions(sessions: list):
+    # Example input: [{"year": 2020, "gp": "Hungarian Grand Prix", "identifier": "race"}, ...]
+    start_time = datetime.now()
+    try:
+        session_requests = [(s['year'], s['gp'], s['identifier']) for s in sessions]
+        results = await asyncio.gather(*(fetch_session_data(*req) for req in session_requests))
+
+        end_time = datetime.now()
+        print(f"Total response time for multiple sessions: {end_time - start_time}")
+
+        return JSONResponse(content={"sessions": results})
+
+    except Exception as e:
+        print(f"Error fetching multiple sessions: {e}")
+        return JSONResponse(content={"error": "Failed to fetch sessions"}, status_code=500)

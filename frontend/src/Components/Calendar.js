@@ -24,7 +24,7 @@ const Calendar = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        `https://anemoi-backend.onrender.com/event/${selectedYear}`
+        `https://anemoi-backend.onrender.com/events/${selectedYear}`
       );
       setEvents(response.data.events || []);
     } catch (error) {

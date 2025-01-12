@@ -3,8 +3,8 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import fastf1
 import asyncio
-import pandas as pd
 from datetime import datetime
+
 app = FastAPI()
 
 # CORS Configuration
@@ -48,20 +48,10 @@ async def get_event_schedule(year: int):
         print(f"Error fetching event schedule: {e}")
         return JSONResponse(content={"error": "Data unavailable"})
 
-# Enable caching for fastf1 to improve performance
-fastf1.Cache.enable_cache('cache_directory')
-
-# In-memory session store
-session_store = {}
-
-# Function to load only required session data asynchronously
-async def fetch_session_data(year, gp, identifier):
-    # Check if session data is already cached
-    if (year, gp, identifier) in session_store:
-        return session_store[(year, gp, identifier)]
-
+# Function to fetch session data asynchronously with timeout
+async def fetch_session_data(year, gp, identifier, timeout=30):
     try:
-        # Use fastf1 to fetch minimal session data
+        # Fetch session data using fastf1
         event = fastf1.get_event(year, gp)
         session = event.get_session(identifier)
         session.load_results()  # Only load results table
@@ -93,8 +83,6 @@ async def fetch_session_data(year, gp, identifier):
             "Results": results if results else []
         }
 
-        # Cache the session data
-        session_store[(year, gp, identifier)] = session_data
         return session_data
 
     except Exception as e:
@@ -105,8 +93,8 @@ async def fetch_session_data(year, gp, identifier):
 async def get_session_data(year: int, gp: str, identifier: str):
     start_time = datetime.now()  # Measure response time
     try:
-        # Fetch session data
-        session_data = await fetch_session_data(year, gp, identifier)
+        # Fetch session data with a timeout
+        session_data = await asyncio.wait_for(fetch_session_data(year, gp, identifier), timeout=30)
 
         # If session data is unavailable
         if session_data is None:
@@ -118,13 +106,14 @@ async def get_session_data(year: int, gp: str, identifier: str):
         # Return session data
         return JSONResponse(content={"session": session_data})
 
+    except asyncio.TimeoutError:
+        return JSONResponse(content={"error": "Session data request timed out"}, status_code=408)
     except Exception as e:
         print(f"Error fetching session data: {e}")
         return JSONResponse(content={"error": "Session data unavailable"}, status_code=500)
 
 @app.get("/multi-session")
 async def get_multiple_sessions(sessions: list):
-    # Example input: [{"year": 2020, "gp": "Hungarian Grand Prix", "identifier": "race"}, ...]
     start_time = datetime.now()
     try:
         session_requests = [(s['year'], s['gp'], s['identifier']) for s in sessions]

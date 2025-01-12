@@ -15,16 +15,16 @@ function App() {
       <header className="App-header">
         <TabWrapper>
           <Tab
-            active={activeTab === "session"}
-            onClick={() => handleTabChange("session")}
-          >
-            Session Details
-          </Tab>
-          <Tab
             active={activeTab === "calendar"}
             onClick={() => handleTabChange("calendar")}
           >
             Calendar
+          </Tab>
+          <Tab
+            active={activeTab === "session"}
+            onClick={() => handleTabChange("session")}
+          >
+            Session Details
           </Tab>
         </TabWrapper>
 

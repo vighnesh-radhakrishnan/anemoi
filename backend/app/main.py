@@ -59,31 +59,31 @@ async def get_session_data(year: int, gp: str, identifier: str):
             return JSONResponse(content={"error": "Session data unavailable"})
 
         # Load the session data (required to access timing/telemetry)
-        # session.load()
+        session.load(laps=True, telemetry=False, weather=False, messages=False)
 
         # Initialize results as None
-        # results = None
+        results = None
 
         # Check if session results are available
-        # if session.results is not None and not session.results.empty:
-        #     # Extract only the required fields from the session results
-        #     results = []
-        #     for _, row in session.results.iterrows():
-        #         result = {
-        #             'Position': row['Position'],
-        #             'HeadshotUrl': row['HeadshotUrl'],
-        #             'BroadcastName': row['BroadcastName'],
-        #             'FullName': row['FullName'],
-        #             'TeamName': row['TeamName'],
-        #             'Time': row['Time'] if isinstance(row['Time'], str) else str(row['Time']) if pd.notna(row['Time']) else None,
-        #             'Status': row['Status'] if row['Status'] else None,
-        #             'Points': row['Points'] if row['Points'] else None
-        #         }
-        #         results.append(result)
-        # else:
-        #     print("Results data is unavailable or empty")
+        if session.results is not None and not session.results.empty:
+            # Extract only the required fields from the session results
+            results = []
+            for _, row in session.results.iterrows():
+                result = {
+                    'Position': row['Position'],
+                    'HeadshotUrl': row['HeadshotUrl'],
+                    'BroadcastName': row['BroadcastName'],
+                    'FullName': row['FullName'],
+                    'TeamName': row['TeamName'],
+                    'Time': row['Time'] if isinstance(row['Time'], str) else str(row['Time']) if pd.notna(row['Time']) else None,
+                    'Status': row['Status'] if row['Status'] else None,
+                    'Points': row['Points'] if row['Points'] else None
+                }
+                results.append(result)
+        else:
+            print("Results data is unavailable or empty")
 
-        # # Create a basic response with session details
+        # Create a basic response with session details
         session_data = {
             "Year": year,
             "GrandPrix": gp,
@@ -94,10 +94,10 @@ async def get_session_data(year: int, gp: str, identifier: str):
         }
 
         # Add results only if they are available
-        # if results:
-        #     session_data["Results"] = results
+        if results:
+            session_data["Results"] = results
 
-        # print(f"Session Data: {session_data}")
+        print(f"Session Data: {session_data}")
 
         return JSONResponse(content={"session": session_data})
 

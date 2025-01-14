@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import fastf1
 import pandas as pd
+import numpy as np
 
 app = FastAPI()
 
@@ -67,17 +68,18 @@ async def get_session_data(year: int, gp: str, identifier: str):
         # Check if session results are available
         if session.results is not None and not session.results.empty:
             # Extract only the required fields from the session results
+
             results = []
             for _, row in session.results.iterrows():
                 result = {
-                    'Position': row['Position'],
+                    'Position': int(row['Position']) if pd.notna(row['Position']) else None,
                     'HeadshotUrl': row['HeadshotUrl'],
                     'BroadcastName': row['BroadcastName'],
                     'FullName': row['FullName'],
                     'TeamName': row['TeamName'],
-                    'Time': row['Time'] if isinstance(row['Time'], str) else str(row['Time']) if pd.notna(row['Time']) else None,
+                    'Time': str(row['Time']) if pd.notna(row['Time']) else None,
                     'Status': row['Status'] if row['Status'] else None,
-                    'Points': row['Points'] if row['Points'] else None
+                    'Points': float(row['Points']) if pd.notna(row['Points']) and not isinstance(row['Points'], (str, np.nan)) else None
                 }
                 results.append(result)
         else:

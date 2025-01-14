@@ -150,7 +150,7 @@ const GetSession = () => {
               <span>{sessionData.session.Location}</span>
             </div>
           </SessionDetails>
-
+          {/* 
           {sessionData.session.Results &&
           sessionData.session.Results.length > 0 ? (
             <TableWrapper>
@@ -196,7 +196,7 @@ const GetSession = () => {
             <NoDataMessage>
               No results available for this session.
             </NoDataMessage>
-          )}
+          )} */}
         </div>
       )}
       {error && !sessionData && !loading && (

@@ -59,7 +59,7 @@ async def get_session_data(year: int, gp: str, identifier: str):
             return JSONResponse(content={"error": "Session data unavailable"})
 
         # Load the session data (required to access timing/telemetry)
-        session.load()
+        # session.load()
 
         # Initialize results as None
         # results = None

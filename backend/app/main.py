@@ -79,7 +79,7 @@ async def get_session_data(year: int, gp: str, identifier: str):
                     'TeamName': row['TeamName'],
                     'Time': str(row['Time']) if pd.notna(row['Time']) else None,
                     'Status': row['Status'] if row['Status'] else None,
-                    'Points': float(row['Points']) if pd.notna(row['Points']) and not isinstance(row['Points'], (str, np.nan)) else None
+                    'Points': float(row['Points']) if pd.notna(row['Points']) and not isinstance(row['Points'], str) else None
                 }
                 results.append(result)
         else:

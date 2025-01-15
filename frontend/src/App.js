@@ -38,7 +38,7 @@ function App() {
         <>
           {activeTab === "session" && <Session />}
           {activeTab === "calendar" && <Calendar />}
-          {activeTab === "calendar" && <Telemetry />}
+          {activeTab === "telemetry" && <Telemetry />}
         </>
       </header>
     </PageWrapper>

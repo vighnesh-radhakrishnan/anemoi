@@ -19,7 +19,7 @@ const SectionHeading = styled.h2`
   color: #333;
 `;
 
-const GetSession = () => {
+const Session = () => {
   const [selectedYear, setSelectedYear] = useState("");
   const [grandPrix, setGrandPrix] = useState("");
   const [sessionIdentifier, setSessionIdentifier] = useState("");
@@ -209,4 +209,4 @@ const GetSession = () => {
   );
 };
 
-export default GetSession;
+export default Session;

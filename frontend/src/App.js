@@ -26,6 +26,12 @@ function App() {
           >
             Session Details
           </Tab>
+          <Tab
+            active={activeTab === "telemetry"}
+            onClick={() => handleTabChange("telemetry")}
+          >
+            Telemetry
+          </Tab>
         </TabWrapper>
 
         <>

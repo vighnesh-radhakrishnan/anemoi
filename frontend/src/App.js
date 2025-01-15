@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Calendar from "./Components/Calendar"; // Import the Championship component
-import GetSession from "./Components/GetSession";
+import Session from "./Components/Session";
+import Telemetry from "./Components/Telemetry";
 import { PageWrapper, TabWrapper, Tab } from "./Components/Container";
 
 function App() {
@@ -35,8 +36,9 @@ function App() {
         </TabWrapper>
 
         <>
-          {activeTab === "session" && <GetSession />}
+          {activeTab === "session" && <Session />}
           {activeTab === "calendar" && <Calendar />}
+          {activeTab === "calendar" && <Telemetry />}
         </>
       </header>
     </PageWrapper>

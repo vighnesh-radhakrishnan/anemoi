@@ -108,6 +108,8 @@ async def get_session_data(year: int, gp: str, identifier: str):
         print(f"Error fetching session data: {e}")
         return JSONResponse(content={"error": "Session data unavailable"})
     
+from fastapi.responses import JSONResponse
+
 @app.get("/telemetry")
 async def get_telemetry_data(year: int, gp: str, identifier: str, driver: str):
     try:

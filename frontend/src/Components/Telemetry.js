@@ -23,6 +23,7 @@ const Telemetry = () => {
   const [selectedYear, setSelectedYear] = useState("");
   const [grandPrix, setGrandPrix] = useState("");
   const [sessionIdentifier, setSessionIdentifier] = useState("");
+  const [driver, setDriver] = useState("");
   const [telemetryData, setTelemetryData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -31,6 +32,7 @@ const Telemetry = () => {
   const handleGrandPrixChange = (event) => setGrandPrix(event.target.value);
   const handleIdentifierChange = (event) =>
     setSessionIdentifier(event.target.value);
+  const handleDriverChange = (event) => setDriver(event.target.value);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -40,7 +42,7 @@ const Telemetry = () => {
 
     try {
       const response = await axios.get(
-        `https://anemoi-backend.onrender.com/telemetry?year=${selectedYear}&gp=${grandPrix}&identifier=${sessionIdentifier}`
+        `https://anemoi-backend.onrender.com/telemetry?year=${selectedYear}&gp=${grandPrix}&identifier=${sessionIdentifier}&driver=${driver}`
       );
       if (response.data.error) {
         setError(true);
@@ -87,6 +89,13 @@ const Telemetry = () => {
           placeholder="Enter Session Identifier (e.g., Race)"
           value={sessionIdentifier}
           onChange={handleIdentifierChange}
+          required
+        />
+        <input
+          type="text"
+          placeholder="Enter Driver (e.g., HAM)"
+          value={driver}
+          onChange={handleDriverChange}
           required
         />
         <button type="submit">Get Telemetry</button>

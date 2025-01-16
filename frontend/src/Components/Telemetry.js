@@ -60,7 +60,7 @@ const Telemetry = () => {
 
   return (
     <PageWrapper>
-      <h1>Get Telemetry Data</h1>
+      <h1>Telemetry</h1>
 
       <FormWrapper
         onSubmit={handleSubmit}

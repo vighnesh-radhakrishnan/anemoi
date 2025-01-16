@@ -89,7 +89,7 @@ const Session = () => {
           onChange={handleIdentifierChange}
           required
         />
-        <button type="submit">Get Session</button>
+        <button type="submit">Session</button>
       </FormWrapper>
 
       {loading && (

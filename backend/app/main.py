@@ -4,7 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 import fastf1
 import pandas as pd
 import numpy as np
-from datetime import datetime
 
 app = FastAPI()
 
@@ -141,11 +140,17 @@ async def get_telemetry_data(year: int, gp: str, identifier: str, driver: str):
             "GrandPrix": gp,
             "Session": identifier,
             "Driver": driver,
-            "Date": str(session.date),  # Convert Timestamp to string
+            "Date": str(session.date),  # Ensure date is a string
             "Event": session.event["EventName"],
             "Location": session.event["Location"],
             "Telemetry": telemetry_data,  # Include telemetry if available
         }
+
+        # Convert other potentially non-serializable fields (if needed)
+        # Example: if any other datetime or complex object exists in the session data
+        for key, value in session_data.items():
+            if isinstance(value, pd.Timestamp):  # Check for pandas Timestamp objects
+                session_data[key] = str(value)
 
         return JSONResponse(content={"session": session_data})
 

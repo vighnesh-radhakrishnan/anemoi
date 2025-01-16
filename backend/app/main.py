@@ -51,7 +51,7 @@ async def get_event_schedule(year: int):
 # Define the route for fetching session data
 
 @app.get("/session")
-async def get_session_data(year: int, gp: str, identifier: str):
+async def get_session_data(year: int, gp: str, identifier: str, driver:str):
     try:
         # Fetch the session
         session = fastf1.get_session(year, gp, identifier)

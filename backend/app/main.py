@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import fastf1
 import pandas as pd
 import numpy as np
+from datetime import datetime
 
 app = FastAPI()
 
@@ -51,7 +52,7 @@ async def get_event_schedule(year: int):
 # Define the route for fetching session data
 
 @app.get("/session")
-async def get_session_data(year: int, gp: str, identifier: str, driver:str):
+async def get_session_data(year: int, gp: str, identifier: str):
     try:
         # Fetch the session
         session = fastf1.get_session(year, gp, identifier)
@@ -120,14 +121,17 @@ async def get_telemetry_data(year: int, gp: str, identifier: str, driver: str):
         session.load()
 
         # Filter laps for the specific driver
-        laps = session.laps.pick_driver(driver)
+        laps = session.laps.pick_drivers(driver)
 
         if laps.empty:
             return JSONResponse(content={"error": f"No lap data available for driver {driver}"})
 
         # Extract telemetry data from the driver's laps
         telemetry = laps.get_telemetry()
-        telemetry_data = telemetry.to_dict("records") if not telemetry.empty else None
+        telemetry_data = []
+        if not telemetry.empty:
+            # Convert telemetry to a JSON-serializable format
+            telemetry_data = telemetry.astype({"Time": str}).to_dict("records")
 
         # Prepare session details
         session_data = {
@@ -135,18 +139,14 @@ async def get_telemetry_data(year: int, gp: str, identifier: str, driver: str):
             "GrandPrix": gp,
             "Session": identifier,
             "Driver": driver,
-            "Date": str(session.date),
+            "Date": str(session.date),  # Convert Timestamp to string
             "Event": session.event["EventName"],
             "Location": session.event["Location"],
+            "Telemetry": telemetry_data,  # Include telemetry if available
         }
-
-        # Add telemetry data if available
-        if telemetry_data:
-            session_data["Telemetry"] = telemetry_data
 
         return JSONResponse(content={"session": session_data})
 
     except Exception as e:
         print(f"Error fetching telemetry data: {e}")
         return JSONResponse(content={"error": "An error occurred while fetching telemetry data"})
-

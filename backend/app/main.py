@@ -116,40 +116,37 @@ async def get_telemetry_data(year: int, gp: str, identifier: str, driver: str):
         if session is None:
             return JSONResponse(content={"error": "Session data unavailable"})
 
-        # Load the session data (only telemetry)
-        session.load(laps=False, telemetry=True, weather=False, messages=False)
+        # Load the session data
+        session.load()
 
-        # Initialize telemetry as None
-        telemetry_data = None
+        # Filter laps for the specific driver
+        laps = session.laps.pick_driver(driver)
 
-        # Fetch telemetry data for the specified driver
-        telemetry = session.get_car_data(driver=driver).add_distance()
+        if laps.empty:
+            return JSONResponse(content={"error": f"No lap data available for driver {driver}"})
 
-        if telemetry is not None and not telemetry.empty:
-            # Convert telemetry to a list of dictionaries for JSON response
-            telemetry_data = telemetry.to_dict('records')
-        else:
-            print("Telemetry data is unavailable or empty")
+        # Extract telemetry data from the driver's laps
+        telemetry = laps.get_telemetry()
+        telemetry_data = telemetry.to_dict("records") if not telemetry.empty else None
 
-        # Create a basic response with session details
+        # Prepare session details
         session_data = {
             "Year": year,
             "GrandPrix": gp,
             "Session": identifier,
             "Driver": driver,
             "Date": str(session.date),
-            "Event": session.event['EventName'],
-            "Location": session.event['Location'],
+            "Event": session.event["EventName"],
+            "Location": session.event["Location"],
         }
 
-        # Add telemetry data only if available
+        # Add telemetry data if available
         if telemetry_data:
             session_data["Telemetry"] = telemetry_data
-
-        print(f"Telemetry Data: {session_data}")
 
         return JSONResponse(content={"session": session_data})
 
     except Exception as e:
         print(f"Error fetching telemetry data: {e}")
-        return JSONResponse(content={"error": "Telemetry data unavailable"})
+        return JSONResponse(content={"error": "An error occurred while fetching telemetry data"})
+

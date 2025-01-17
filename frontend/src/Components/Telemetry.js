@@ -134,9 +134,9 @@ const TelemetryDetails = () => {
 
           {telemetryData.image_base64 && (
             <div>
-              <h2>
-                `{telemetryData.session.GrandPrix} Fastest Lap:{" "}
-                {telemetryData.session.Driver}`
+              <h2 className="image-header">
+                {telemetryData.session.GrandPrix} Fastest Lap:{" "}
+                {telemetryData.session.Driver}
               </h2>
               <img
                 src={`data:image/png;base64,${telemetryData.image_base64}`}

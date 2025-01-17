@@ -35,6 +35,10 @@ export const PageWrapper = styled.div`
   h1 {
     text-align: center;
   }
+
+  .image-header {
+    text-align: center;
+  }
 `;
 
 export const FormWrapper = styled.form`

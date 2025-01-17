@@ -181,7 +181,7 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
 
         # Create the plot with an adjusted figure size
-        fig, ax = plt.subplots(figsize=(8, 6))  # Adjusted to an appropriate size (8x6)
+        fig, ax = plt.subplots(figsize=(4, 2)) 
         cmap = plt.get_cmap("viridis")
         lc = LineCollection(segments, cmap=cmap, norm=norm)
         lc.set_array(speed)

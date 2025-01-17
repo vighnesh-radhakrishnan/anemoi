@@ -123,7 +123,7 @@ async def get_fastest_lap_telemetry_base64(year: int, gp: str, identifier: str, 
         print(f"Session Event: {session.event}")
 
         # Get the fastest lap for the specified driver
-        fastest_lap = session.laps.pick_driver(driver)
+        fastest_lap = session.laps.pick_drivers(driver)
 
         # Check if a fastest lap is available for the driver
         if fastest_lap.empty:

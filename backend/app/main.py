@@ -189,13 +189,16 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
         ax.add_collection(lc)
         ax.autoscale()
         ax.axis("off")
+        
+        # Add color bar and adjust its size
         cbar = plt.colorbar(lc, ax=ax)
         cbar.set_label("Speed (km/h)")
-        ax.set_title(f"{event_name} ({gp} - {identifier})\nFastest Lap: {driver}", fontsize=14)
+        cbar.ax.tick_params(labelsize=8)  # Reduce tick label size
+        cbar.ax.set_ylim([speed.min(), speed.max()])  # Ensure the color bar range matches the data
 
         # Save the plot to a BytesIO object and encode to Base64
         img_stream = io.BytesIO()
-        plt.savefig(img_stream, format="png", dpi=300, bbox_inches="tight")
+        plt.savefig(img_stream, format="png", dpi=400, bbox_inches="tight")
         plt.close(fig)
         img_stream.seek(0)
         base64_img = base64.b64encode(img_stream.getvalue()).decode('utf-8')

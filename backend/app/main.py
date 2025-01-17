@@ -119,6 +119,9 @@ async def get_fastest_lap_telemetry_base64(year: int, gp: str, identifier: str, 
         session = fastf1.get_session(year, gp, identifier)
         session.load(laps=True, telemetry=True, weather=False, messages=False)
         
+        # Debug: Print the session event details to check what's available
+        print(f"Session Event: {session.event}")
+
         # Get the fastest lap for the specified driver
         fastest_lap = session.laps.pick_driver(driver).pick_fastest()
         
@@ -129,19 +132,23 @@ async def get_fastest_lap_telemetry_base64(year: int, gp: str, identifier: str, 
         base64_img = plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, session.event["EventName"])
         
         if base64_img:
-            # Prepare session data
+            # Safely handle missing 'Date' field
             session_data = {
                 "GrandPrix": session.event["EventName"],
                 "Year": year,
                 "Session": identifier,
                 "Driver": driver,
                 "Event": session.event["EventName"],
-                "Location": session.event["Location"],
-                "Date": session.event["Date"]
+                "Location": session.event.get("Location", "Unknown"),  # Default to "Unknown" if not available
+                "Date": session.event.get("Date", "Unknown")  # Default to "Unknown" if not available
             }
             return JSONResponse(content={"session": session_data, "image_base64": base64_img})
         else:
             return JSONResponse(content={"error": "Failed to generate plot"})
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return JSONResponse(content={"error": "An error occurred while processing the data"})
 
     except Exception as e:
         print(f"Error: {e}")

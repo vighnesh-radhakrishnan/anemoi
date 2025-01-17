@@ -180,8 +180,8 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
         points = np.array([x, y]).T.reshape(-1, 1, 2)
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
 
-        # Create the plot with an adjusted figure size
-        fig, ax = plt.subplots(figsize=(4, 2))  # Circuit plot size (4x2)
+        # Create the plot with a smaller figure size
+        fig, ax = plt.subplots(figsize=(3, 1.5))  # Reduce the circuit plot size (3x1.5)
         cmap = plt.get_cmap("viridis")
         
         # Reduce the line width here
@@ -191,15 +191,15 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
         ax.autoscale()
         ax.axis("off")
 
-        # Add the color bar, making it smaller
-        cbar = plt.colorbar(lc, ax=ax, fraction=0.03, pad=0.04)  # Adjust the size and padding
-        cbar.set_label("Speed (km/h)", fontsize=8)  # Smaller font size for the label
-        cbar.ax.tick_params(labelsize=6)  # Reduce tick label size
+        # Adjust the color bar size
+        cbar = plt.colorbar(lc, ax=ax, fraction=0.025, pad=0.03)  # Even smaller fraction and padding
+        cbar.set_label("Speed (km/h)", fontsize=6)  # Smaller font size for the label
+        cbar.ax.tick_params(labelsize=5)  # Further reduce tick label size
         cbar.ax.set_ylim([speed.min(), speed.max()])  # Ensure the color bar range matches the data
 
         # Save the plot to a BytesIO object and encode to Base64
         img_stream = io.BytesIO()
-        plt.savefig(img_stream, format="png", dpi=400, bbox_inches="tight")
+        plt.savefig(img_stream, format="png", dpi=300, bbox_inches="tight")  # Reduced DPI (300)
         plt.close(fig)
         img_stream.seek(0)
         base64_img = base64.b64encode(img_stream.getvalue()).decode('utf-8')

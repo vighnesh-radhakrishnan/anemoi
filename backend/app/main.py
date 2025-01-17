@@ -134,24 +134,18 @@ async def get_telemetry_data(year: int, gp: str, identifier: str, driver: str):
             # Convert telemetry to a JSON-serializable format
             telemetry_data = telemetry.astype({"Time": str}).to_dict("records")
 
-        # Prepare session details
+        # Prepare session details without the Timestamp
         session_data = {
             "Year": year,
             "GrandPrix": gp,
             "Session": identifier,
             "Driver": driver,
-            "Date": str(session.date),  # Ensure date is a string
             "Event": session.event["EventName"],
             "Location": session.event["Location"],
             "Telemetry": telemetry_data,  # Include telemetry if available
         }
 
-        # Convert other potentially non-serializable fields (if needed)
-        # Example: if any other datetime or complex object exists in the session data
-        for key, value in session_data.items():
-            if isinstance(value, pd.Timestamp):  # Check for pandas Timestamp objects
-                session_data[key] = str(value)
-
+        # Return the session data without Timestamp
         return JSONResponse(content={"session": session_data})
 
     except Exception as e:

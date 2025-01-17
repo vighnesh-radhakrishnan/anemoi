@@ -116,7 +116,7 @@ async def get_session_data(year: int, gp: str, identifier: str):
 async def get_fastest_lap_telemetry_base64(year: int, gp: str, identifier: str, driver: str):
     try:
         session = fastf1.get_session(year, gp, identifier)
-        session.load()
+        session.load(laps=True, telemetry=True, weather=False, messages=False)
         fastest_lap = session.laps.pick_driver(driver).pick_fastest()
         telemetry = fastest_lap.get_telemetry().add_distance()
 

@@ -146,7 +146,6 @@ async def get_fastest_lap_telemetry_base64(year: int, gp: str, identifier: str, 
                 "Driver": driver,
                 "Event": session.event["EventName"],
                 "Location": session.event.get("Location", "Unknown"),  # Default to "Unknown" if not available
-                "Date": session.event.get("Date", "Unknown")  # Default to "Unknown" if not available
             }
             return JSONResponse(content={"session": session_data, "image_base64": base64_img})
         else:

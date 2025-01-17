@@ -130,10 +130,6 @@ const TelemetryDetails = () => {
               <strong>Location:</strong>
               <span>{telemetryData.session.Location}</span>
             </div>
-            <div>
-              <strong>Date:</strong>
-              <span>{telemetryData.session.Date}</span>
-            </div>
           </SessionDetails>
 
           {telemetryData.image_base64 && (

@@ -1,25 +1,15 @@
 // @ts-nocheck
 import React, { useState } from "react";
 import axios from "axios";
-import styled from "styled-components";
-import { ReactComponent as AvatarIcon } from "../Icons/avatar.svg";
 import LoadingGif from "../Icons/loading.gif";
 import {
   PageWrapper,
   FormWrapper,
-  TableWrapper,
-  StyledTable,
   NoDataMessage,
-} from "./Container"; // Importing styled divs from `container.js`
+  SessionDetails,
+} from "./Container";
 
-const SectionHeading = styled.h2`
-  text-align: center;
-  margin: 30px 0 20px;
-  font-size: 1.5rem;
-  color: #333;
-`;
-
-const Telemetry = () => {
+const TelemetryDetails = () => {
   const [selectedYear, setSelectedYear] = useState("");
   const [grandPrix, setGrandPrix] = useState("");
   const [sessionIdentifier, setSessionIdentifier] = useState("");
@@ -52,7 +42,7 @@ const Telemetry = () => {
         setTelemetryData(response.data);
       }
     } catch (err) {
-      console.error("Error fetching telemetry data:", err);
+      console.error("Error fetching telemetry details:", err);
       setError(true);
       setTelemetryData(null);
     } finally {
@@ -62,7 +52,7 @@ const Telemetry = () => {
 
   return (
     <PageWrapper>
-      <h1>Telemetry</h1>
+      <h1>Telemetry Details</h1>
 
       <FormWrapper
         onSubmit={handleSubmit}
@@ -98,7 +88,7 @@ const Telemetry = () => {
           onChange={handleDriverChange}
           required
         />
-        <button type="submit">Get Telemetry</button>
+        <button type="submit">Get Telemetry Details</button>
       </FormWrapper>
 
       {loading && (
@@ -113,58 +103,54 @@ const Telemetry = () => {
         </div>
       )}
 
-      {telemetryData && telemetryData.results && loading !== true && (
+      {telemetryData && !loading && (
         <div>
-          <SectionHeading>Telemetry Overview</SectionHeading>
+          <SessionDetails>
+            <div>
+              <strong>Grand Prix:</strong>
+              <span>{telemetryData.session.GrandPrix}</span>
+            </div>
+            <div>
+              <strong>Year:</strong>
+              <span>{telemetryData.session.Year}</span>
+            </div>
+            <div>
+              <strong>Session:</strong>
+              <span>{telemetryData.session.Session}</span>
+            </div>
+            <div>
+              <strong>Driver:</strong>
+              <span>{telemetryData.session.Driver}</span>
+            </div>
+            <div>
+              <strong>Event:</strong>
+              <span>{telemetryData.session.Event}</span>
+            </div>
+            <div>
+              <strong>Location:</strong>
+              <span>{telemetryData.session.Location}</span>
+            </div>
+            <div>
+              <strong>Date:</strong>
+              <span>{telemetryData.session.Date}</span>
+            </div>
+          </SessionDetails>
 
-          {telemetryData.results.length > 0 ? (
-            <TableWrapper>
-              <StyledTable>
-                <thead>
-                  <tr>
-                    <th>Driver</th>
-                    <th>Speed</th>
-                    <th>RPM</th>
-                    <th>Gear</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {telemetryData.results.map((telemetry, index) => (
-                    <tr key={index}>
-                      <td>
-                        <div className="driver-info">
-                          {telemetry.HeadshotUrl !== "None" &&
-                          telemetry.HeadshotUrl !== "" ? (
-                            <img
-                              src={telemetry.HeadshotUrl}
-                              alt={telemetry.DriverName.toLowerCase()}
-                            />
-                          ) : (
-                            <AvatarIcon />
-                          )}
-                          <span>{telemetry.DriverName}</span>
-                        </div>
-                      </td>
-                      <td>{telemetry.Speed} km/h</td>
-                      <td>{telemetry.RPM}</td>
-                      <td>{telemetry.Gear}</td>
-                      <td>{telemetry.Status || "N/A"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </StyledTable>
-            </TableWrapper>
-          ) : (
-            <NoDataMessage>
-              No telemetry data available for this session.
-            </NoDataMessage>
+          {telemetryData.image_base64 && (
+            <div>
+              <h2>Fastest Lap Circuit</h2>
+              <img
+                src={`data:image/png;base64,${telemetryData.image_base64}`}
+                alt="Fastest Lap Telemetry"
+              />
+            </div>
           )}
         </div>
       )}
+
       {error && !telemetryData && !loading && (
         <NoDataMessage>
-          Sorry, no telemetry data found for the provided input. Please try
+          Sorry, no telemetry details found for the provided input. Please try
           again with different values.
         </NoDataMessage>
       )}
@@ -172,4 +158,4 @@ const Telemetry = () => {
   );
 };
 
-export default Telemetry;
+export default TelemetryDetails;

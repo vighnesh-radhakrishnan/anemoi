@@ -1,11 +1,19 @@
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
+import io
+import base64
 import fastf1
 import pandas as pd
 import numpy as np
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from matplotlib import pyplot as plt
+from matplotlib.collections import LineCollection
+from uuid import uuid4
 
 app = FastAPI()
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # CORS Configuration
 app.add_middleware(
@@ -109,60 +117,55 @@ async def get_session_data(year: int, gp: str, identifier: str):
     
 
 @app.get("/telemetry")
-async def get_telemetry_data(year: int, gp: str, identifier: str, driver: str):
+async def get_fastest_lap_telemetry_base64(year: int, gp: str, identifier: str, driver: str):
     try:
-        # Fetch the session
         session = fastf1.get_session(year, gp, identifier)
-
-        if session is None:
-            return JSONResponse(content={"error": "Session data unavailable"})
-
-        # Load the session data
         session.load()
+        fastest_lap = session.laps.pick_driver(driver).pick_fastest()
+        telemetry = fastest_lap.get_telemetry().add_distance()
 
-        # Filter laps for the specific driver
-        laps = session.laps.pick_drivers(driver)
-
-        if laps.empty:
-            return JSONResponse(content={"error": f"No lap data available for driver {driver}"})
-
-        # Extract telemetry data from the driver's laps
-        telemetry = laps.get_telemetry()
-        telemetry_data = []
-        if not telemetry.empty:
-            # Convert telemetry to JSON-serializable format
-            telemetry_data = telemetry.astype({"Time": str}).to_dict("records")
-
-        # Prepare session details
-        session_data = {
-            "Year": year,
-            "GrandPrix": gp,
-            "Session": identifier,
-            "Driver": driver,
-            "Event": session.event["EventName"],
-            "Location": session.event["Location"],
-            "Date": str(session.date) if session.date else None,  # Convert date to string
-            "Telemetry": telemetry_data,  # Include telemetry
-        }
-
-        # Ensure all data is JSON-serializable
-        def make_serializable(data):
-            if isinstance(data, dict):
-                return {k: make_serializable(v) for k, v in data.items()}
-            elif isinstance(data, list):
-                return [make_serializable(item) for item in data]
-            elif isinstance(data, pd.Timestamp):
-                return str(data)  # Convert Timestamps to strings
-            elif isinstance(data, pd.Timedelta):
-                return str(data)  # Convert Timedeltas to strings
-            else:
-                return data
-
-        # Serialize session_data
-        session_data = make_serializable(session_data)
-
-        return JSONResponse(content={"session": session_data})
+        base64_img = plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, session.event["EventName"])
+        if base64_img:
+            return JSONResponse(content={"image_base64": base64_img})
+        else:
+            return JSONResponse(content={"error": "Failed to generate plot"})
 
     except Exception as e:
-        print(f"Error fetching telemetry data: {e}")
-        return JSONResponse(content={"error": "An error occurred while fetching telemetry data"})
+        print(f"Error: {e}")
+        return JSONResponse(content={"error": "An error occurred while processing the data"})
+
+def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
+    try:
+        x = telemetry["X"].to_numpy()
+        y = telemetry["Y"].to_numpy()
+        speed = telemetry["Speed"].to_numpy()
+
+        # Normalize speed for color mapping
+        norm = plt.Normalize(speed.min(), speed.max())
+        points = np.array([x, y]).T.reshape(-1, 1, 2)
+        segments = np.concatenate([points[:-1], points[1:]], axis=1)
+
+        # Create the plot
+        fig, ax = plt.subplots(figsize=(12, 6))
+        cmap = plt.get_cmap("viridis")
+        lc = LineCollection(segments, cmap=cmap, norm=norm)
+        lc.set_array(speed)
+        lc.set_linewidth(3)
+        ax.add_collection(lc)
+        ax.autoscale()
+        ax.axis("off")
+        cbar = plt.colorbar(lc, ax=ax)
+        cbar.set_label("Speed (km/h)")
+        ax.set_title(f"{event_name} ({gp} - {identifier})\nFastest Lap: {driver}", fontsize=14)
+
+        # Save to BytesIO and encode in Base64
+        img_stream = io.BytesIO()
+        plt.savefig(img_stream, format="png", dpi=300, bbox_inches="tight")
+        plt.close(fig)
+        img_stream.seek(0)
+        base64_img = base64.b64encode(img_stream.getvalue()).decode('utf-8')
+        return base64_img
+
+    except Exception as e:
+        print(f"Error while plotting: {e}")
+        return None

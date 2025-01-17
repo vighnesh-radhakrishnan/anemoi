@@ -156,10 +156,22 @@ async def get_fastest_lap_telemetry_base64(year: int, gp: str, identifier: str, 
 
 def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
     try:
-        # Extract telemetry data
+        # Check for missing or invalid telemetry data
+        if "X" not in telemetry or "Y" not in telemetry or "Speed" not in telemetry:
+            raise ValueError("Telemetry data is incomplete or missing necessary columns.")
+        
         x = telemetry["X"].to_numpy()
         y = telemetry["Y"].to_numpy()
         speed = telemetry["Speed"].to_numpy()
+
+        # Handle NaN values by removing them
+        valid_indices = ~np.isnan(x) & ~np.isnan(y) & ~np.isnan(speed)
+        x = x[valid_indices]
+        y = y[valid_indices]
+        speed = speed[valid_indices]
+
+        if len(x) == 0 or len(y) == 0 or len(speed) == 0:
+            raise ValueError("No valid telemetry data available for plotting.")
 
         # Normalize speed for color mapping
         norm = plt.Normalize(speed.min(), speed.max())

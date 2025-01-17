@@ -132,7 +132,7 @@ async def get_fastest_lap_telemetry_base64(year: int, gp: str, identifier: str, 
             # Prepare session data
             session_data = {
                 "GrandPrix": session.event["EventName"],
-                "Year": session.year,
+                "Year": year,
                 "Session": identifier,
                 "Driver": driver,
                 "Event": session.event["EventName"],

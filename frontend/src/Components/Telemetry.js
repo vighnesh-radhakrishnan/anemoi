@@ -139,6 +139,7 @@ const TelemetryDetails = () => {
                 {telemetryData.session.Driver}
               </h2>
               <img
+                className="image"
                 src={`data:image/png;base64,${telemetryData.image_base64}`}
                 alt="Fastest Lap Telemetry"
               />

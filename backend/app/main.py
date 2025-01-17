@@ -183,9 +183,10 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
         # Create the plot with an adjusted figure size
         fig, ax = plt.subplots(figsize=(4, 2))  # Circuit plot size (4x2)
         cmap = plt.get_cmap("viridis")
-        lc = LineCollection(segments, cmap=cmap, norm=norm)
+        
+        # Reduce the line width here
+        lc = LineCollection(segments, cmap=cmap, norm=norm, linewidth=1)  # Set linewidth to 1 (smaller)
         lc.set_array(speed)
-        lc.set_linewidth(3)
         ax.add_collection(lc)
         ax.autoscale()
         ax.axis("off")

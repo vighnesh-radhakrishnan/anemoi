@@ -181,7 +181,7 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
 
         # Create the plot with an adjusted figure size
-        fig, ax = plt.subplots(figsize=(4, 2)) 
+        fig, ax = plt.subplots(figsize=(4, 2))  # Circuit plot size (4x2)
         cmap = plt.get_cmap("viridis")
         lc = LineCollection(segments, cmap=cmap, norm=norm)
         lc.set_array(speed)
@@ -189,11 +189,11 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
         ax.add_collection(lc)
         ax.autoscale()
         ax.axis("off")
-        
-        # Add color bar and adjust its size
-        cbar = plt.colorbar(lc, ax=ax)
-        cbar.set_label("Speed (km/h)")
-        cbar.ax.tick_params(labelsize=8)  # Reduce tick label size
+
+        # Add the color bar, making it smaller
+        cbar = plt.colorbar(lc, ax=ax, fraction=0.03, pad=0.04)  # Adjust the size and padding
+        cbar.set_label("Speed (km/h)", fontsize=8)  # Smaller font size for the label
+        cbar.ax.tick_params(labelsize=6)  # Reduce tick label size
         cbar.ax.set_ylim([speed.min(), speed.max()])  # Ensure the color bar range matches the data
 
         # Save the plot to a BytesIO object and encode to Base64

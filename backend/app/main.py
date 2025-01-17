@@ -115,15 +115,21 @@ async def get_session_data(year: int, gp: str, identifier: str):
 @app.get("/telemetry")
 async def get_fastest_lap_telemetry_base64(year: int, gp: str, identifier: str, driver: str):
     try:
+        # Load the session and telemetry data
         session = fastf1.get_session(year, gp, identifier)
         session.load(laps=True, telemetry=True, weather=False, messages=False)
+        
+        # Get the fastest lap for the specified driver
         fastest_lap = session.laps.pick_driver(driver).pick_fastest()
+        
+        # Get telemetry data with added distance
         telemetry = fastest_lap.get_telemetry().add_distance()
 
+        # Generate the base64 image
         base64_img = plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, session.event["EventName"])
         
-        # Return both session data and the base64 image
         if base64_img:
+            # Prepare session data
             session_data = {
                 "GrandPrix": session.event["EventName"],
                 "Year": session.year,
@@ -141,9 +147,9 @@ async def get_fastest_lap_telemetry_base64(year: int, gp: str, identifier: str, 
         print(f"Error: {e}")
         return JSONResponse(content={"error": "An error occurred while processing the data"})
 
-
 def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
     try:
+        # Extract telemetry data
         x = telemetry["X"].to_numpy()
         y = telemetry["Y"].to_numpy()
         speed = telemetry["Speed"].to_numpy()
@@ -166,7 +172,7 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
         cbar.set_label("Speed (km/h)")
         ax.set_title(f"{event_name} ({gp} - {identifier})\nFastest Lap: {driver}", fontsize=14)
 
-        # Save to BytesIO and encode in Base64
+        # Save the plot to a BytesIO object and encode to Base64
         img_stream = io.BytesIO()
         plt.savefig(img_stream, format="png", dpi=300, bbox_inches="tight")
         plt.close(fig)

@@ -121,14 +121,26 @@ async def get_fastest_lap_telemetry_base64(year: int, gp: str, identifier: str, 
         telemetry = fastest_lap.get_telemetry().add_distance()
 
         base64_img = plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, session.event["EventName"])
+        
+        # Return both session data and the base64 image
         if base64_img:
-            return JSONResponse(content={"image_base64": base64_img})
+            session_data = {
+                "GrandPrix": session.event["EventName"],
+                "Year": session.year,
+                "Session": identifier,
+                "Driver": driver,
+                "Event": session.event["EventName"],
+                "Location": session.event["Location"],
+                "Date": session.event["Date"]
+            }
+            return JSONResponse(content={"session": session_data, "image_base64": base64_img})
         else:
             return JSONResponse(content={"error": "Failed to generate plot"})
 
     except Exception as e:
         print(f"Error: {e}")
         return JSONResponse(content={"error": "An error occurred while processing the data"})
+
 
 def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
     try:

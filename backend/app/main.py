@@ -107,7 +107,6 @@ async def get_session_data(year: int, gp: str, identifier: str):
         print(f"Error fetching session data: {e}")
         return JSONResponse(content={"error": "Session data unavailable"})
     
-from fastapi.responses import JSONResponse
 
 @app.get("/telemetry")
 async def get_telemetry_data(year: int, gp: str, identifier: str, driver: str):
@@ -131,10 +130,10 @@ async def get_telemetry_data(year: int, gp: str, identifier: str, driver: str):
         telemetry = laps.get_telemetry()
         telemetry_data = []
         if not telemetry.empty:
-            # Convert telemetry to a JSON-serializable format
+            # Convert telemetry to JSON-serializable format
             telemetry_data = telemetry.astype({"Time": str}).to_dict("records")
 
-        # Prepare session details and remove non-serializable fields
+        # Prepare session details
         session_data = {
             "Year": year,
             "GrandPrix": gp,
@@ -142,12 +141,11 @@ async def get_telemetry_data(year: int, gp: str, identifier: str, driver: str):
             "Driver": driver,
             "Event": session.event["EventName"],
             "Location": session.event["Location"],
-            # Convert the date to a string if it exists
-            "Date": str(session.date) if hasattr(session, 'date') and session.date else None,
-            "Telemetry": telemetry_data,  # Include telemetry if available
+            "Date": str(session.date) if session.date else None,  # Convert date to string
+            "Telemetry": telemetry_data,  # Include telemetry
         }
 
-        # Final cleanup: Remove any remaining non-serializable fields
+        # Ensure all data is JSON-serializable
         def make_serializable(data):
             if isinstance(data, dict):
                 return {k: make_serializable(v) for k, v in data.items()}
@@ -155,10 +153,12 @@ async def get_telemetry_data(year: int, gp: str, identifier: str, driver: str):
                 return [make_serializable(item) for item in data]
             elif isinstance(data, pd.Timestamp):
                 return str(data)  # Convert Timestamps to strings
+            elif isinstance(data, pd.Timedelta):
+                return str(data)  # Convert Timedeltas to strings
             else:
                 return data
 
-        # Ensure the entire session_data dictionary is serializable
+        # Serialize session_data
         session_data = make_serializable(session_data)
 
         return JSONResponse(content={"session": session_data})

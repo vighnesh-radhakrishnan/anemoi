@@ -6,13 +6,10 @@ import numpy as np
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from matplotlib import pyplot as plt
 from matplotlib.collections import LineCollection
 
 app = FastAPI()
-
-app.mount("/static", StaticFiles(directory="path_to_your_static_files"), name="static")
 
 # CORS Configuration
 app.add_middleware(

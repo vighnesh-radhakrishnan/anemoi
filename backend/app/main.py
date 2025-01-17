@@ -9,11 +9,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from matplotlib import pyplot as plt
 from matplotlib.collections import LineCollection
-from uuid import uuid4
 
 app = FastAPI()
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="path_to_your_static_files"), name="static")
 
 # CORS Configuration
 app.add_middleware(

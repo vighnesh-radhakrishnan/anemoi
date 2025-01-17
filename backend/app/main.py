@@ -118,13 +118,19 @@ async def get_fastest_lap_telemetry_base64(year: int, gp: str, identifier: str, 
         # Load the session and telemetry data
         session = fastf1.get_session(year, gp, identifier)
         session.load(laps=True, telemetry=True, weather=False, messages=False)
-        
+
         # Debug: Print the session event details to check what's available
         print(f"Session Event: {session.event}")
 
         # Get the fastest lap for the specified driver
-        fastest_lap = session.laps.pick_driver(driver).pick_fastest()
-        
+        fastest_lap = session.laps.pick_driver(driver)
+
+        # Check if a fastest lap is available for the driver
+        if fastest_lap.empty:
+            return JSONResponse(content={"error": f"No fastest lap data available for driver {driver}"})
+
+        fastest_lap = fastest_lap.pick_fastest()
+
         # Get telemetry data with added distance
         telemetry = fastest_lap.get_telemetry().add_distance()
 
@@ -150,9 +156,6 @@ async def get_fastest_lap_telemetry_base64(year: int, gp: str, identifier: str, 
         print(f"Error: {e}")
         return JSONResponse(content={"error": "An error occurred while processing the data"})
 
-    except Exception as e:
-        print(f"Error: {e}")
-        return JSONResponse(content={"error": "An error occurred while processing the data"})
 
 def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
     try:

@@ -52,7 +52,7 @@ const FastestLap = () => {
 
   return (
     <PageWrapper>
-      <h1>FastestLap Details</h1>
+      <h1>Fastest Lap Details</h1>
 
       <FormWrapper
         onSubmit={handleSubmit}

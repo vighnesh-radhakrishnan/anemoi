@@ -166,6 +166,9 @@ export const StyledTable = styled.table`
       height: 40px;
     }
   }
+  .circuit-link {
+    text-decoration: none;
+  }
 `;
 
 export const NoDataMessage = styled.p`

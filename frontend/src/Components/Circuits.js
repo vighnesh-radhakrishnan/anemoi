@@ -123,6 +123,7 @@ const Circuits = () => {
                 <tr key={index}>
                   <td>
                     <a
+                      className="circuit-link"
                       href={circuit.url}
                       target="_blank"
                       rel="noopener noreferrer"

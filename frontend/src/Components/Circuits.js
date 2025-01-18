@@ -95,7 +95,17 @@ const Circuits = () => {
       </FormWrapper>
 
       {error && <NoDataMessage>{error}</NoDataMessage>}
-      {loading && <img src={LoadingGif} alt="Loading..." />}
+      {loading && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "50px",
+          }}
+        >
+          <img src={LoadingGif} alt="Loading..." width="150" height="150" />
+        </div>
+      )}
       {!loading && circuits.length > 0 && (
         <TableWrapper>
           <StyledTable>

@@ -31,7 +31,7 @@ function App() {
             active={activeTab === "FastestLap"}
             onClick={() => handleTabChange("FastestLap")}
           >
-            FastestLap
+            Fastest Lap
           </Tab>
         </TabWrapper>
 

@@ -251,7 +251,10 @@ async def get_circuits(
         circuits = data.get("MRData", {}).get("CircuitTable", {}).get("Circuits", [])
         
         if country:
-            circuits = [circuit for circuit in circuits if circuit.get("location", {}).get("country", "").lower() == country.lower()]
+            circuits = [
+                circuit for circuit in circuits 
+                if circuit.get("Location", {}).get("country", "").lower() == country.lower()
+            ]
         
         print(f"Session Data: {data}")
         print(f"Session Data Transformed: {circuits}")
@@ -259,7 +262,7 @@ async def get_circuits(
         # Transform the data
         result = []
         for circuit in circuits:
-            location = circuit.get("location", {})
+            location = circuit.get("Location", {})
             result.append({
                 "circuitName": circuit.get("circuitName"),
                 "locality": location.get("locality"),

@@ -38,10 +38,18 @@ export const PageWrapper = styled.div`
 
   .image-header {
     text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .image-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
   }
 
   .image {
-    text-align: center;
+    max-width: 100%;
+    height: auto;
   }
 `;
 

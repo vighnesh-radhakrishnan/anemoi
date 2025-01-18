@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Calendar from "./Components/Calendar"; // Import the Championship component
 import Session from "./Components/Session";
 import FastestLap from "./Components/FastestLap";
+import Circuits from "./Components/Circuits";
 import { PageWrapper, TabWrapper, Tab } from "./Components/Container";
 
 function App() {
@@ -28,17 +29,24 @@ function App() {
             Session Details
           </Tab>
           <Tab
-            active={activeTab === "FastestLap"}
-            onClick={() => handleTabChange("FastestLap")}
+            active={activeTab === "fastestLap"}
+            onClick={() => handleTabChange("fastestLap")}
           >
             Fastest Lap
+          </Tab>
+          <Tab
+            active={activeTab === "circuits"}
+            onClick={() => handleTabChange("circuits")}
+          >
+            Circuits
           </Tab>
         </TabWrapper>
 
         <>
           {activeTab === "session" && <Session />}
           {activeTab === "calendar" && <Calendar />}
-          {activeTab === "FastestLap" && <FastestLap />}
+          {activeTab === "fastestLap" && <FastestLap />}
+          {activeTab === "circuits" && <Circuits />}
         </>
       </header>
     </PageWrapper>

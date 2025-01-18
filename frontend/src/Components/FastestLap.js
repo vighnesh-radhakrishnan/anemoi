@@ -9,12 +9,12 @@ import {
   SessionDetails,
 } from "./Container";
 
-const TelemetryDetails = () => {
+const FastestLap = () => {
   const [selectedYear, setSelectedYear] = useState("");
   const [grandPrix, setGrandPrix] = useState("");
   const [sessionIdentifier, setSessionIdentifier] = useState("");
   const [driver, setDriver] = useState("");
-  const [telemetryData, setTelemetryData] = useState(null);
+  const [fastestLapData, setFastestLapData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
@@ -28,7 +28,7 @@ const TelemetryDetails = () => {
     event.preventDefault();
     setLoading(true);
     setError(false);
-    setTelemetryData(null);
+    setFastestLapData(null);
 
     try {
       const response = await axios.get(
@@ -36,15 +36,15 @@ const TelemetryDetails = () => {
       );
       if (response.data.error) {
         setError(true);
-        setTelemetryData(null);
+        setFastestLapData(null);
       } else {
         setError(false);
-        setTelemetryData(response.data);
+        setFastestLapData(response.data);
       }
     } catch (err) {
       console.error("Error fetching telemetry details:", err);
       setError(true);
-      setTelemetryData(null);
+      setFastestLapData(null);
     } finally {
       setLoading(false);
     }
@@ -52,7 +52,7 @@ const TelemetryDetails = () => {
 
   return (
     <PageWrapper>
-      <h1>Telemetry Details</h1>
+      <h1>FastestLap Details</h1>
 
       <FormWrapper
         onSubmit={handleSubmit}
@@ -103,45 +103,45 @@ const TelemetryDetails = () => {
         </div>
       )}
 
-      {telemetryData && !loading && (
+      {fastestLapData && !loading && (
         <div>
           <SessionDetails>
             <div>
               <strong>Grand Prix:</strong>
-              <span>{telemetryData.session.GrandPrix}</span>
+              <span>{fastestLapData.session.GrandPrix}</span>
             </div>
             <div>
               <strong>Year:</strong>
-              <span>{telemetryData.session.Year}</span>
+              <span>{fastestLapData.session.Year}</span>
             </div>
             <div>
               <strong>Session:</strong>
-              <span>{telemetryData.session.Session}</span>
+              <span>{fastestLapData.session.Session}</span>
             </div>
             <div>
               <strong>Driver:</strong>
-              <span>{telemetryData.session.Driver}</span>
+              <span>{fastestLapData.session.Driver}</span>
             </div>
             <div>
               <strong>Event:</strong>
-              <span>{telemetryData.session.Event}</span>
+              <span>{fastestLapData.session.Event}</span>
             </div>
             <div>
               <strong>Location:</strong>
-              <span>{telemetryData.session.Location}</span>
+              <span>{fastestLapData.session.Location}</span>
             </div>
           </SessionDetails>
 
-          {telemetryData.image_base64 && (
+          {fastestLapData.image_base64 && (
             <div>
               <h2 className="image-header">
-                {telemetryData.session.GrandPrix} Fastest Lap:{" "}
-                {telemetryData.session.Driver}
+                {fastestLapData.session.GrandPrix} Fastest Lap:{" "}
+                {fastestLapData.session.Driver}
               </h2>
               <div className="image-container">
                 <img
                   className="image"
-                  src={`data:image/png;base64,${telemetryData.image_base64}`}
+                  src={`data:image/png;base64,${fastestLapData.image_base64}`}
                   alt="Fastest Lap Telemetry"
                 />
               </div>
@@ -150,7 +150,7 @@ const TelemetryDetails = () => {
         </div>
       )}
 
-      {error && !telemetryData && !loading && (
+      {error && !fastestLapData && !loading && (
         <NoDataMessage>
           Sorry, no telemetry details found for the provided input. Please try
           again with different values.
@@ -160,4 +160,4 @@ const TelemetryDetails = () => {
   );
 };
 
-export default TelemetryDetails;
+export default FastestLap;

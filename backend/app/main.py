@@ -212,36 +212,58 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
 
 
 @app.get("/circuits")
-async def get_circuits(year: int = None, circuit_id: str = None):
+async def get_circuits(
+    year: int = None, 
+    circuit_id: str = None, 
+    driver_id: str = None, 
+    constructor_id: str = None, 
+    country: str = None
+):
     try:
         # Base URL for the Ergast API
         base_url = "http://ergast.com/api/f1"
+        url = base_url + "/circuits.json"  # Default endpoint
 
-        # Build the URL based on the parameters
+        # Build the URL based on parameters
         if circuit_id:
             url = f"{base_url}/circuits/{circuit_id}.json"
+        elif year and driver_id and constructor_id:
+            url = f"{base_url}/{year}/drivers/{driver_id}/constructors/{constructor_id}/circuits.json"
         elif year:
             url = f"{base_url}/{year}/circuits.json"
-        else:
-            url = f"{base_url}/circuits.json"
+        elif driver_id and constructor_id:
+            url = f"{base_url}/drivers/{driver_id}/constructors/{constructor_id}/circuits.json"
+        elif driver_id or constructor_id:
+            return JSONResponse(
+                content={
+                    "error": "Both driver_id and constructor_id are required for filtering by driver/constructor."
+                },
+                status_code=400,
+            )
 
         # Fetch data from the API
         response = requests.get(url)
         if response.status_code != 200:
             return JSONResponse(content={"error": "Failed to fetch circuit data"}, status_code=500)
 
-        # Parse the response
+        # Parse and filter data
         data = response.json()
         circuits = data.get("MRData", {}).get("CircuitTable", {}).get("Circuits", [])
-
+        
+        if country:
+            circuits = [circuit for circuit in circuits if circuit.get("location", {}).get("country", "").lower() == country.lower()]
+        
         # Transform the data
         result = []
         for circuit in circuits:
+            location = circuit.get("location", {})
             result.append({
                 "circuitName": circuit.get("circuitName"),
-                "locality": circuit.get("location", {}).get("locality"),
-                "country": circuit.get("location", {}).get("country"),
-                "description": circuit.get("url"),  # Directly use the provided URL
+                "locality": location.get("locality"),
+                "country": location.get("country"),
+                "lat": location.get("lat"),
+                "long": location.get("long"),
+                "url": circuit.get("url"),
             })
 
         return JSONResponse(content={"circuits": result})

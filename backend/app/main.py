@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from matplotlib import pyplot as plt
 from matplotlib.collections import LineCollection
+import requests
 
 app = FastAPI()
 
@@ -208,3 +209,42 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
     except Exception as e:
         print(f"Error while plotting: {e}")
         return None
+
+
+@app.get("/circuits")
+async def get_circuits(year: int = None, circuit_id: str = None):
+    try:
+        # Base URL for the Ergast API
+        base_url = "http://ergast.com/api/f1"
+
+        # Build the URL based on the parameters
+        if circuit_id:
+            url = f"{base_url}/circuits/{circuit_id}.json"
+        elif year:
+            url = f"{base_url}/{year}/circuits.json"
+        else:
+            url = f"{base_url}/circuits.json"
+
+        # Fetch data from the API
+        response = requests.get(url)
+        if response.status_code != 200:
+            return JSONResponse(content={"error": "Failed to fetch circuit data"}, status_code=500)
+
+        # Parse the response
+        data = response.json()
+        circuits = data.get("MRData", {}).get("CircuitTable", {}).get("Circuits", [])
+
+        # Transform the data
+        result = []
+        for circuit in circuits:
+            result.append({
+                "circuitName": circuit.get("circuitName"),
+                "locality": circuit.get("location", {}).get("locality"),
+                "country": circuit.get("location", {}).get("country"),
+                "description": circuit.get("url"),  # Directly use the provided URL
+            })
+
+        return JSONResponse(content={"circuits": result})
+    except Exception as e:
+        print(f"Error fetching circuit data: {e}")
+        return JSONResponse(content={"error": "Data unavailable"}, status_code=500)

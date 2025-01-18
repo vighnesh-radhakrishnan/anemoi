@@ -253,6 +253,9 @@ async def get_circuits(
         if country:
             circuits = [circuit for circuit in circuits if circuit.get("location", {}).get("country", "").lower() == country.lower()]
         
+        print(f"Session Data: {data}")
+        print(f"Session Data Transformed: {circuits}")
+
         # Transform the data
         result = []
         for circuit in circuits:

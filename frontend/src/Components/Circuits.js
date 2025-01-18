@@ -106,6 +106,11 @@ const Circuits = () => {
           <img src={LoadingGif} alt="Loading..." width="150" height="150" />
         </div>
       )}
+      {!loading && circuits.length === 0 && (
+        <NoDataMessage>
+          No circuits found for the selected inputs.
+        </NoDataMessage>
+      )}
       {!loading && circuits.length > 0 && (
         <TableWrapper>
           <StyledTable>

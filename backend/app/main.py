@@ -222,7 +222,7 @@ async def get_circuits(
     try:
         base_url = "http://ergast.com/api/f1"
         url = base_url + "/circuits.json"
-        limit = 100  # Set the maximum limit per page (API restriction)
+        limit = 100
         offset = 0
         all_circuits = []
 

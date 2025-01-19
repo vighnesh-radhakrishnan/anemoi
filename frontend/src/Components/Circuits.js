@@ -171,6 +171,7 @@ const Circuits = () => {
 
           <div style={{ textAlign: "center", marginTop: "20px" }}>
             <button
+              className="pagination-button"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
             >
@@ -180,6 +181,7 @@ const Circuits = () => {
               Page {currentPage} of {totalPages}
             </span>
             <button
+              className="pagination-button"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
             >

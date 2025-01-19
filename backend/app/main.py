@@ -220,11 +220,13 @@ async def get_circuits(
     country: str = None
 ):
     try:
-        # Base URL for the Ergast API
         base_url = "http://ergast.com/api/f1"
-        url = base_url + "/circuits.json"  # Default endpoint
+        url = base_url + "/circuits.json"
+        limit = 100  # Set the maximum limit per page (API restriction)
+        offset = 0
+        all_circuits = []
 
-        # Build the URL based on parameters
+        # Build the base URL based on parameters
         if circuit_id:
             url = f"{base_url}/circuits/{circuit_id}.json"
         elif year and driver_id and constructor_id:
@@ -235,33 +237,35 @@ async def get_circuits(
             url = f"{base_url}/drivers/{driver_id}/constructors/{constructor_id}/circuits.json"
         elif driver_id or constructor_id:
             return JSONResponse(
-                content={
-                    "error": "Both driver_id and constructor_id are required for filtering by driver/constructor."
-                },
+                content={"error": "Both driver_id and constructor_id are required for filtering by driver/constructor."},
                 status_code=400,
             )
 
-        # Fetch data from the API
-        response = requests.get(url)
-        if response.status_code != 200:
-            return JSONResponse(content={"error": "Failed to fetch circuit data"}, status_code=500)
+        while True:
+            response = requests.get(f"{url}?limit={limit}&offset={offset}")
+            if response.status_code != 200:
+                return JSONResponse(content={"error": "Failed to fetch circuit data"}, status_code=500)
 
-        # Parse and filter data
-        data = response.json()
-        circuits = data.get("MRData", {}).get("CircuitTable", {}).get("Circuits", [])
-        
+            data = response.json()
+            circuits = data.get("MRData", {}).get("CircuitTable", {}).get("Circuits", [])
+            all_circuits.extend(circuits)
+
+            # Check if all pages are fetched
+            total = int(data.get("MRData", {}).get("total", 0))
+            offset += limit
+            if offset >= total:
+                break
+
+        # Apply country filter
         if country:
-            circuits = [
-                circuit for circuit in circuits 
+            all_circuits = [
+                circuit for circuit in all_circuits
                 if circuit.get("Location", {}).get("country", "").lower() == country.lower()
             ]
-        
-        print(f"Session Data: {data}")
-        print(f"Session Data Transformed: {circuits}")
 
         # Transform the data
         result = []
-        for circuit in circuits:
+        for circuit in all_circuits:
             location = circuit.get("Location", {})
             result.append({
                 "circuitName": circuit.get("circuitName"),

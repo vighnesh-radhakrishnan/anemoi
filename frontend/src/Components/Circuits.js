@@ -20,6 +20,21 @@ const Circuits = () => {
   const [circuits, setCircuits] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 25; // Default per page data
+
+  // Calculate total pages
+  const totalPages = Math.ceil(circuits.length / pageSize);
+
+  // Paginated circuits
+  const paginatedCircuits = circuits.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
+  useEffect(() => {
+    fetchCircuits(); // Fetch all circuits on initial load
+  }, []);
 
   const fetchCircuits = async () => {
     setLoading(true);
@@ -55,7 +70,14 @@ const Circuits = () => {
       setError("Driver ID and Constructor ID are both required.");
       return;
     }
+    setCurrentPage(1); // Reset to the first page
     fetchCircuits();
+  };
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
   };
 
   return (
@@ -112,39 +134,59 @@ const Circuits = () => {
         </NoDataMessage>
       )}
       {!loading && circuits.length > 0 && (
-        <TableWrapper>
-          <StyledTable>
-            <thead>
-              <tr>
-                <th>Circuit</th>
-                <th>Locality</th>
-                <th>Country</th>
-                <th>Latitude</th>
-                <th>Longitude</th>
-              </tr>
-            </thead>
-            <tbody>
-              {circuits.map((circuit, index) => (
-                <tr key={index}>
-                  <td>
-                    <a
-                      className="circuit-link"
-                      href={circuit.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {circuit.circuitName}
-                    </a>
-                  </td>
-                  <td>{circuit.locality || "N/A"}</td>
-                  <td>{circuit.country || "N/A"}</td>
-                  <td>{circuit.lat || "N/A"}</td>
-                  <td>{circuit.long || "N/A"}</td>
+        <>
+          <TableWrapper>
+            <StyledTable>
+              <thead>
+                <tr>
+                  <th>Circuit</th>
+                  <th>Locality</th>
+                  <th>Country</th>
+                  <th>Latitude</th>
+                  <th>Longitude</th>
                 </tr>
-              ))}
-            </tbody>
-          </StyledTable>
-        </TableWrapper>
+              </thead>
+              <tbody>
+                {paginatedCircuits.map((circuit, index) => (
+                  <tr key={index}>
+                    <td>
+                      <a
+                        className="circuit-link"
+                        href={circuit.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {circuit.circuitName}
+                      </a>
+                    </td>
+                    <td>{circuit.locality || "N/A"}</td>
+                    <td>{circuit.country || "N/A"}</td>
+                    <td>{circuit.lat || "N/A"}</td>
+                    <td>{circuit.long || "N/A"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </StyledTable>
+          </TableWrapper>
+
+          <div style={{ textAlign: "center", marginTop: "20px" }}>
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </button>
+            <span style={{ margin: "0 10px" }}>
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </div>
+        </>
       )}
     </PageWrapper>
   );

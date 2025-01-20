@@ -4,6 +4,7 @@ import Session from "./Components/Session";
 import FastestLap from "./Components/FastestLap";
 import Circuits from "./Components/Circuits";
 import Standings from "./Components/Standings";
+import Constructors from "./Components/Constructors";
 import { PageWrapper, TabWrapper, Tab } from "./Components/Container";
 
 function App() {
@@ -47,6 +48,12 @@ function App() {
           >
             Circuits
           </Tab>
+          <Tab
+            active={activeTab === "constructors"}
+            onClick={() => handleTabChange("constructors")}
+          >
+            Constructors
+          </Tab>
         </TabWrapper>
 
         <>
@@ -55,6 +62,7 @@ function App() {
           {activeTab === "fastestLap" && <FastestLap />}
           {activeTab === "circuits" && <Circuits />}
           {activeTab === "standings" && <Standings />}
+          {activeTab === "constructors" && <Constructors />}
         </>
       </header>
     </PageWrapper>

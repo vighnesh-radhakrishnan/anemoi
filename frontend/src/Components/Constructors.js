@@ -141,8 +141,6 @@ const Constructors = () => {
                 <tr>
                   <th>Constructor Name</th>
                   <th>Nationality</th>
-                  <th>Founded</th>
-                  <th>URL</th>
                 </tr>
               </thead>
               <tbody>
@@ -159,16 +157,6 @@ const Constructors = () => {
                       </a>
                     </td>
                     <td>{constructor.nationality || "N/A"}</td>
-                    <td>{constructor.founded || "N/A"}</td>
-                    <td>
-                      <a
-                        href={constructor.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {constructor.url || "N/A"}
-                      </a>
-                    </td>
                   </tr>
                 ))}
               </tbody>

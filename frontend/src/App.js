@@ -3,6 +3,7 @@ import Calendar from "./Components/Calendar"; // Import the Championship compone
 import Session from "./Components/Session";
 import FastestLap from "./Components/FastestLap";
 import Circuits from "./Components/Circuits";
+import Standings from "./Components/Standings";
 import { PageWrapper, TabWrapper, Tab } from "./Components/Container";
 
 function App() {
@@ -21,6 +22,12 @@ function App() {
             onClick={() => handleTabChange("calendar")}
           >
             Calendar
+          </Tab>
+          <Tab
+            active={activeTab === "standings"}
+            onClick={() => handleTabChange("standings")}
+          >
+            Circuits
           </Tab>
           <Tab
             active={activeTab === "session"}
@@ -47,6 +54,7 @@ function App() {
           {activeTab === "calendar" && <Calendar />}
           {activeTab === "fastestLap" && <FastestLap />}
           {activeTab === "circuits" && <Circuits />}
+          {activeTab === "standings" && <Standings />}
         </>
       </header>
     </PageWrapper>

@@ -27,7 +27,7 @@ function App() {
             active={activeTab === "standings"}
             onClick={() => handleTabChange("standings")}
           >
-            Circuits
+            Standings
           </Tab>
           <Tab
             active={activeTab === "session"}
@@ -45,7 +45,7 @@ function App() {
             active={activeTab === "circuits"}
             onClick={() => handleTabChange("circuits")}
           >
-            Standings
+            Circuits
           </Tab>
         </TabWrapper>
 

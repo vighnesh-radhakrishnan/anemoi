@@ -280,3 +280,72 @@ async def get_circuits(
     except Exception as e:
         print(f"Error fetching circuit data: {e}")
         return JSONResponse(content={"error": "Data unavailable"}, status_code=500)
+    
+@app.get("/standings")
+async def get_standings(year: int, type: str):
+    try:
+        # Validate the type parameter
+        if type not in ["driverStandings", "constructorStandings"]:
+            return JSONResponse(content={"error": "Invalid type. Must be 'driverStandings' or 'constructorStandings'."})
+        
+        # Construct the API URL
+        url = f"http://ergast.com/api/f1/{year}/{type}.json?limit=25"
+        
+        # Fetch the data from the API
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an error for HTTP errors
+
+        data = response.json()
+
+        # Extract standings information
+        standings_list = data.get("MRData", {}).get("StandingsTable", {}).get("StandingsLists", [])
+        
+        if not standings_list:
+            return JSONResponse(content={"error": f"No standings data found for year {year}"})
+
+        # Prepare the results
+        standings = []
+        for item in standings_list[0].get(f"{type.split('Standings')[0].capitalize()}Standings", []):
+            entry = {
+                "Position": item.get("position"),
+                "Points": item.get("points"),
+                "Wins": item.get("wins"),
+            }
+            if type == "driverStandings":
+                entry.update({
+                    "Driver": {
+                        "Name": f"{item['Driver']['givenName']} {item['Driver']['familyName']}",
+                        "Nationality": item["Driver"]["nationality"],
+                        "PermanentNumber": item["Driver"].get("permanentNumber"),
+                        "Code": item["Driver"].get("code"),
+                        "URL": item["Driver"].get("url"),
+                    },
+                    "Constructor": {
+                        "Name": item["Constructors"][0]["name"],
+                        "Nationality": item["Constructors"][0]["nationality"],
+                        "URL": item["Constructors"][0].get("url"),
+                    },
+                })
+            elif type == "constructorStandings":
+                entry.update({
+                    "Constructor": {
+                        "Name": item["Constructor"]["name"],
+                        "Nationality": item["Constructor"]["nationality"],
+                        "URL": item["Constructor"].get("url"),
+                    },
+                })
+            standings.append(entry)
+
+        # Include metadata for the response
+        result = {
+            "Year": year,
+            "Type": type,
+            "Standings": standings,
+        }
+
+        return JSONResponse(content=result)
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching standings data: {e}")
+        return JSONResponse(content={"error": "Unable to fetch standings data."})
+

@@ -349,3 +349,76 @@ async def get_standings(year: int, type: str):
         print(f"Error fetching standings data: {e}")
         return JSONResponse(content={"error": "Unable to fetch standings data."})
 
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
+import requests
+
+app = FastAPI()
+
+@app.get("/constructors")
+async def get_constructors(
+    year: int = None,
+    round: int = None,
+    circuit_id: str = None,
+    driver_id: str = None,
+    constructor_id: str = None,
+    position: int = None,
+    status_id: str = None,
+    rank: int = None
+):
+    try:
+        base_url = "http://ergast.com/api/f1"
+        url = f"{base_url}/constructors.json"
+        limit = 100
+        offset = 0
+        all_constructors = []
+
+        # Build the base URL based on parameters
+        if constructor_id:
+            url = f"{base_url}/constructors/{constructor_id}.json"
+        elif year and round:
+            url = f"{base_url}/{year}/{round}/constructors.json"
+        elif year:
+            url = f"{base_url}/{year}/constructors.json"
+        elif driver_id and circuit_id:
+            url = f"{base_url}/drivers/{driver_id}/circuits/{circuit_id}/constructors.json"
+        elif position:
+            url = f"{base_url}/constructorStandings/{position}/constructors.json"
+        elif circuit_id:
+            url = f"{base_url}/circuits/{circuit_id}/constructors.json"
+        elif driver_id:
+            url = f"{base_url}/drivers/{driver_id}/constructors.json"
+        elif rank:
+            url = f"{base_url}/fastest/{rank}/constructors.json"
+        elif status_id:
+            url = f"{base_url}/status/{status_id}/constructors.json"
+
+        while True:
+            response = requests.get(f"{url}?limit={limit}&offset={offset}")
+            if response.status_code != 200:
+                return JSONResponse(content={"error": "Failed to fetch constructor data"}, status_code=500)
+
+            data = response.json()
+            constructors = data.get("MRData", {}).get("ConstructorTable", {}).get("Constructors", [])
+            all_constructors.extend(constructors)
+
+            # Check if all pages are fetched
+            total = int(data.get("MRData", {}).get("total", 0))
+            offset += limit
+            if offset >= total:
+                break
+
+        # Transform the data
+        result = []
+        for constructor in all_constructors:
+            result.append({
+                "constructorId": constructor.get("constructorId"),
+                "name": constructor.get("name"),
+                "nationality": constructor.get("nationality"),
+                "url": constructor.get("url"),
+            })
+
+        return JSONResponse(content={"constructors": result})
+    except Exception as e:
+        print(f"Error fetching constructor data: {e}")
+        return JSONResponse(content={"error": "Data unavailable"}, status_code=500)

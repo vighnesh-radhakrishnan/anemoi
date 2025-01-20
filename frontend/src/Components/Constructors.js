@@ -148,7 +148,7 @@ const Constructors = () => {
                   <tr key={index}>
                     <td>
                       <a
-                        className="constructor-link"
+                        className="linked-name"
                         href={constructor.url}
                         target="_blank"
                         rel="noopener noreferrer"

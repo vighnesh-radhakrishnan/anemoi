@@ -75,7 +75,7 @@ const Standing = () => {
           <option value="driverStandings">Driver Standings</option>
           <option value="constructorStandings">Constructor Standings</option>
         </select>
-        <button type="submit">Get Standings</button>
+        <button type="submit">Standings</button>
       </FormWrapper>
 
       {loading && (

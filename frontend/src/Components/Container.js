@@ -85,6 +85,29 @@ export const FormWrapper = styled.form`
     font-family: futura;
   }
 
+  select {
+    display: flex;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    flex-grow: 1;
+    font-size: 16px;
+    font-family: futura;
+    background-color: #fff;
+    appearance: none;
+    cursor: pointer;
+
+    &:hover {
+      border-color: #e10600;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: #e10600;
+      box-shadow: 0 0 5px rgba(225, 6, 0, 0.5);
+    }
+  }
+
   button {
     padding: 10px 20px;
     background-color: #e10600;

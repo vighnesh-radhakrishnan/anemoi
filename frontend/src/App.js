@@ -45,7 +45,7 @@ function App() {
             active={activeTab === "circuits"}
             onClick={() => handleTabChange("circuits")}
           >
-            Circuits
+            Standings
           </Tab>
         </TabWrapper>
 

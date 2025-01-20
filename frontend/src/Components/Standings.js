@@ -24,8 +24,15 @@ const Standing = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
-  const handleYearChange = (event) => setSelectedYear(event.target.value);
-  const handleTypeChange = (event) => setStandingType(event.target.value);
+  const handleYearChange = (event) => {
+    setSelectedYear(event.target.value);
+    setStandingData(null);
+  };
+
+  const handleTypeChange = (event) => {
+    setStandingType(event.target.value);
+    setStandingData(null);
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -125,9 +132,10 @@ const Standing = () => {
                 {standingData.Standings.map((item, index) => (
                   <tr key={index}>
                     <td>{item.Position}</td>
-                    {standingType === "driverStandings" && (
+                    {standingType === "driverStandings" && item.Driver?.URL && (
                       <td>
                         <a
+                          className="linked-name"
                           href={item.Driver.URL}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -137,13 +145,14 @@ const Standing = () => {
                       </td>
                     )}
                     {standingType === "driverStandings" && (
-                      <td>{item.Driver.PermanentNumber}</td>
+                      <td>{item.Driver?.PermanentNumber || "N/A"}</td>
                     )}
                     {standingType === "driverStandings" && (
-                      <td>{item.Driver.Nationality}</td>
+                      <td>{item.Driver?.Nationality || "N/A"}</td>
                     )}
                     <td>
                       <a
+                        className="linked-name"
                         href={item.Constructor.URL}
                         target="_blank"
                         rel="noopener noreferrer"

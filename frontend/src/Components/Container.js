@@ -209,6 +209,10 @@ export const StyledTable = styled.table`
   .circuit-link {
     text-decoration: none;
   }
+
+  .linked-name {
+    text-decoration: none;
+  }
 `;
 
 export const NoDataMessage = styled.p`

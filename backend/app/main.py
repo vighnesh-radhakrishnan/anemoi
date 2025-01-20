@@ -349,12 +349,6 @@ async def get_standings(year: int, type: str):
         print(f"Error fetching standings data: {e}")
         return JSONResponse(content={"error": "Unable to fetch standings data."})
 
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
-import requests
-
-app = FastAPI()
-
 @app.get("/constructors")
 async def get_constructors(
     year: int = None,

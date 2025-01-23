@@ -416,3 +416,75 @@ async def get_constructors(
     except Exception as e:
         print(f"Error fetching constructor data: {e}")
         return JSONResponse(content={"error": "Data unavailable"}, status_code=500)
+
+@app.get("/drivers")
+async def get_drivers(
+    year: int = None,
+    round: int = None,
+    circuit_id: str = None,
+    constructor_id: str = None,
+    position: int = None,
+    driver_id: str = None,
+    rank: int = None,
+    status_id: str = None
+):
+    try:
+        base_url = "http://ergast.com/api/f1"
+        url = f"{base_url}/drivers.json"
+        limit = 100
+        offset = 0
+        all_drivers = []
+
+        # Build the URL based on the query parameters
+        if driver_id:
+            url = f"{base_url}/drivers/{driver_id}.json"
+        elif year and round:
+            url = f"{base_url}/{year}/{round}/drivers.json"
+        elif year:
+            url = f"{base_url}/{year}/drivers.json"
+        elif constructor_id and circuit_id:
+            url = f"{base_url}/constructors/{constructor_id}/circuits/{circuit_id}/drivers.json"
+        elif constructor_id:
+            url = f"{base_url}/constructors/{constructor_id}/drivers.json"
+        elif circuit_id:
+            url = f"{base_url}/circuits/{circuit_id}/drivers.json"
+        elif position:
+            url = f"{base_url}/results/{position}/drivers.json"
+        elif rank:
+            url = f"{base_url}/fastest/{rank}/drivers.json"
+        elif status_id:
+            url = f"{base_url}/status/{status_id}/drivers.json"
+
+        # Paginate through results
+        while True:
+            response = requests.get(f"{url}?limit={limit}&offset={offset}")
+            if response.status_code != 200:
+                return JSONResponse(content={"error": "Failed to fetch driver data"}, status_code=500)
+
+            data = response.json()
+            drivers = data.get("MRData", {}).get("DriverTable", {}).get("Drivers", [])
+            all_drivers.extend(drivers)
+
+            # Check if all pages are fetched
+            total = int(data.get("MRData", {}).get("total", 0))
+            offset += limit
+            if offset >= total:
+                break
+
+        # Transform the data
+        result = []
+        for driver in all_drivers:
+            result.append({
+                "driverId": driver.get("driverId"),
+                "code": driver.get("code"),
+                "url": driver.get("url"),
+                "givenName": driver.get("givenName"),
+                "familyName": driver.get("familyName"),
+                "dateOfBirth": driver.get("dateOfBirth"),
+                "nationality": driver.get("nationality"),
+            })
+
+        return JSONResponse(content={"drivers": result})
+    except Exception as e:
+        print(f"Error fetching driver data: {e}")
+        return JSONResponse(content={"error": "Data unavailable"}, status_code=500)

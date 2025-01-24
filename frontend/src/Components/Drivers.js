@@ -10,51 +10,59 @@ import {
 } from "./Container";
 import LoadingGif from "../Icons/loading.gif";
 
-const Constructors = () => {
+const Drivers = () => {
   const [searchParams, setSearchParams] = useState({
     year: "",
-    driverId: "",
+    round: "",
+    constructorId: "",
     circuitId: "",
-    country: "",
+    driverId: "",
   });
-  const [constructors, setConstructors] = useState([]);
+  const [drivers, setDrivers] = useState([]);
+  const [columns, setColumns] = useState([]); // Dynamic columns
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 25; // Default per page data
 
   // Calculate total pages
-  const totalPages = Math.ceil(constructors.length / pageSize);
+  const totalPages = Math.ceil(drivers.length / pageSize);
 
-  // Paginated constructors
-  const paginatedConstructors = constructors.slice(
+  // Paginated drivers
+  const paginatedDrivers = drivers.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
 
   useEffect(() => {
-    fetchConstructors(); // Fetch all constructors on initial load
+    fetchDrivers(); // Fetch all drivers on initial load
   }, []);
 
-  const fetchConstructors = async () => {
+  const fetchDrivers = async () => {
     setLoading(true);
     setError("");
     try {
-      const { year, driverId, circuitId, country } = searchParams;
+      const { year, round, constructorId, circuitId, driverId } = searchParams;
       const query = new URLSearchParams({
         ...(year && { year }),
-        ...(driverId && { driver_id: driverId }),
+        ...(round && { round }),
+        ...(constructorId && { constructor_id: constructorId }),
         ...(circuitId && { circuit_id: circuitId }),
-        ...(country && { country }),
+        ...(driverId && { driver_id: driverId }),
       });
 
       const response = await axios.get(
-        `https://anemoi-backend.onrender.com/constructors?${query}`
+        `https://anemoi-backend.onrender.com/drivers?${query}`
       );
-      setConstructors(response.data.constructors || []);
+
+      setDrivers(response.data.drivers || []);
+      if (response.data.drivers.length > 0) {
+        // Extract columns dynamically from the first driver entry
+        setColumns(Object.keys(response.data.drivers[0]));
+      }
     } catch (error) {
-      console.error("Error fetching constructors:", error);
-      setError("Unable to fetch constructor data. Please check your inputs.");
+      console.error("Error fetching drivers:", error);
+      setError("Unable to fetch driver data. Please check your inputs.");
     }
     setLoading(false);
   };
@@ -66,12 +74,8 @@ const Constructors = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (!searchParams.year && searchParams.driverId) {
-      setError("Year is required when filtering by Driver ID.");
-      return;
-    }
     setCurrentPage(1); // Reset to the first page
-    fetchConstructors();
+    fetchDrivers();
   };
 
   const handlePageChange = (page) => {
@@ -82,35 +86,42 @@ const Constructors = () => {
 
   return (
     <PageWrapper>
-      <Heading>Constructors</Heading>
+      <Heading>Drivers</Heading>
 
       <FormWrapper onSubmit={handleSubmit}>
         <input
           type="text"
           name="year"
-          placeholder="Year (e.g., 2010)"
+          placeholder="Year (e.g., 2020)"
           value={searchParams.year}
           onChange={handleChange}
         />
         <input
           type="text"
-          name="driverId"
-          placeholder="Driver ID (e.g., alonso)"
-          value={searchParams.driverId}
+          name="round"
+          placeholder="Round (e.g., 5)"
+          value={searchParams.round}
+          onChange={handleChange}
+        />
+        <input
+          type="text"
+          name="constructorId"
+          placeholder="Constructor ID (e.g., ferrari)"
+          value={searchParams.constructorId}
           onChange={handleChange}
         />
         <input
           type="text"
           name="circuitId"
-          placeholder="Circuit ID (e.g., albert_park)"
+          placeholder="Circuit ID (e.g., monza)"
           value={searchParams.circuitId}
           onChange={handleChange}
         />
         <input
           type="text"
-          name="country"
-          placeholder="Country (e.g., Australia)"
-          value={searchParams.country}
+          name="driverId"
+          placeholder="Driver ID (e.g., hamilton)"
+          value={searchParams.driverId}
           onChange={handleChange}
         />
         <button type="submit">Search</button>
@@ -128,35 +139,39 @@ const Constructors = () => {
           <img src={LoadingGif} alt="Loading..." width="150" height="150" />
         </div>
       )}
-      {!loading && constructors.length === 0 && (
-        <NoDataMessage>
-          No constructors found for the selected inputs.
-        </NoDataMessage>
+      {!loading && drivers.length === 0 && (
+        <NoDataMessage>No drivers found for the selected inputs.</NoDataMessage>
       )}
-      {!loading && constructors.length > 0 && (
+      {!loading && drivers.length > 0 && (
         <>
           <TableWrapper>
             <StyledTable>
               <thead>
                 <tr>
-                  <th>Constructor Name</th>
-                  <th>Nationality</th>
+                  {columns.map((column, index) => (
+                    <th key={index}>{column}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {paginatedConstructors.map((constructor, index) => (
+                {paginatedDrivers.map((driver, index) => (
                   <tr key={index}>
-                    <td>
-                      <a
-                        className="linked-name"
-                        href={constructor.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {constructor.name}
-                      </a>
-                    </td>
-                    <td>{constructor.nationality || "N/A"}</td>
+                    {columns.map((column, colIndex) => (
+                      <td key={colIndex}>
+                        {column === "url" ? (
+                          <a
+                            className="linked-name"
+                            href={driver[column]}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {driver.givenName} {driver.familyName}
+                          </a>
+                        ) : (
+                          driver[column] || "N/A"
+                        )}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
@@ -188,4 +203,4 @@ const Constructors = () => {
   );
 };
 
-export default Constructors;
+export default Drivers;

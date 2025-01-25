@@ -19,7 +19,6 @@ const Drivers = () => {
     driverId: "",
   });
   const [drivers, setDrivers] = useState([]);
-  const [columns, setColumns] = useState([]); // Dynamic columns
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -56,10 +55,6 @@ const Drivers = () => {
       );
 
       setDrivers(response.data.drivers || []);
-      if (response.data.drivers.length > 0) {
-        // Extract columns dynamically from the first driver entry
-        setColumns(Object.keys(response.data.drivers[0]));
-      }
     } catch (error) {
       console.error("Error fetching drivers:", error);
       setError("Unable to fetch driver data. Please check your inputs.");

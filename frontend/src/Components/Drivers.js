@@ -148,30 +148,28 @@ const Drivers = () => {
             <StyledTable>
               <thead>
                 <tr>
-                  {columns.map((column, index) => (
-                    <th key={index}>{column}</th>
-                  ))}
+                  <th>Driver</th>
+                  <th>Code Name</th>
+                  <th>Date Of Birth</th>
+                  <th>Nationality</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedDrivers.map((driver, index) => (
                   <tr key={index}>
-                    {columns.map((column, colIndex) => (
-                      <td key={colIndex}>
-                        {column === "url" ? (
-                          <a
-                            className="linked-name"
-                            href={driver[column]}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            {driver.givenName} {driver.familyName}
-                          </a>
-                        ) : (
-                          driver[column] || "N/A"
-                        )}
-                      </td>
-                    ))}
+                    <td>
+                      <a
+                        className="circuit-link"
+                        href={driver.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {driver.givenName} {driver.familyName}
+                      </a>
+                    </td>
+                    <td>{driver.code || "N/A"}</td>
+                    <td>{driver.dateOfBirth || "N/A"}</td>
+                    <td>{driver.nationality || "N/A"}</td>
                   </tr>
                 ))}
               </tbody>

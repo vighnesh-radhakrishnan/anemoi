@@ -488,3 +488,91 @@ async def get_drivers(
     except Exception as e:
         print(f"Error fetching driver data: {e}")
         return JSONResponse(content={"error": "Data unavailable"}, status_code=500)
+    
+@app.get("/track-dominance")
+async def get_track_dominance_base64(
+    year: int, 
+    gp: str, 
+    identifier: str, 
+    driver1: str, 
+    driver2: str
+):
+    try:
+        # Load the session data and telemetry
+        session = fastf1.get_session(year, gp, identifier)
+        session.load(laps=True, telemetry=True, weather=False, messages=False)
+        
+        # Get the fastest laps for both drivers
+        lap_driver1 = session.laps.pick_drivers(driver1).pick_fastest()
+        lap_driver2 = session.laps.pick_drivers(driver2).pick_fastest()
+
+        # Check if valid laps exist for both drivers
+        if lap_driver1.empty or lap_driver2.empty:
+            return JSONResponse(content={"error": "Fastest laps unavailable for one or both drivers"})
+
+        # Retrieve telemetry for both drivers
+        telemetry_driver1 = lap_driver1.get_telemetry().add_distance()
+        telemetry_driver2 = lap_driver2.get_telemetry().add_distance()
+
+        # Generate the track dominance plot as base64
+        base64_img = plot_track_dominance_to_base64(
+            telemetry_driver1, telemetry_driver2, driver1, driver2, session.event["EventName"]
+        )
+        if base64_img:
+            return JSONResponse(content={"image_base64": base64_img})
+        else:
+            return JSONResponse(content={"error": "Failed to generate track dominance plot"})
+    except Exception as e:
+        print(f"Error: {e}")
+        return JSONResponse(content={"error": "An error occurred while processing the data"})
+
+
+def plot_track_dominance_to_base64(telemetry1, telemetry2, driver1, driver2, event_name):
+    try:
+        # Ensure necessary columns exist in telemetry
+        required_columns = {"Distance", "X", "Y"}
+        if not required_columns.issubset(telemetry1.columns) or not required_columns.issubset(telemetry2.columns):
+            raise ValueError("Telemetry data is incomplete or missing necessary columns.")
+
+        # Prepare data for plotting
+        distance1 = telemetry1["Distance"].to_numpy()
+        speed1 = telemetry1["Speed"].to_numpy()
+
+        distance2 = telemetry2["Distance"].to_numpy()
+        speed2 = telemetry2["Speed"].to_numpy()
+
+        # Normalize the distances to align them for comparison
+        min_length = min(len(distance1), len(distance2))
+        distance1, speed1 = distance1[:min_length], speed1[:min_length]
+        distance2, speed2 = distance2[:min_length], speed2[:min_length]
+
+        # Compute speed difference
+        speed_diff = speed1 - speed2
+
+        # Plot the dominance map
+        fig, ax = plt.subplots(figsize=(6, 4))  # Adjust plot size to match existing dimensions
+        ax.plot(distance1, speed_diff, color="blue", label=f"{driver1} - {driver2}")
+        ax.axhline(0, color="black", linestyle="--", linewidth=0.8)
+        ax.fill_between(distance1, 0, speed_diff, where=(speed_diff > 0), color="green", alpha=0.5, label=f"{driver1} Faster")
+        ax.fill_between(distance1, 0, speed_diff, where=(speed_diff < 0), color="red", alpha=0.5, label=f"{driver2} Faster")
+
+        # Customize the plot
+        ax.set_title(f"Track Dominance: {driver1} vs {driver2} - {event_name}", fontsize=10)
+        ax.set_xlabel("Distance (m)", fontsize=8)
+        ax.set_ylabel("Speed Difference (km/h)", fontsize=8)
+        ax.legend(fontsize=6, loc="upper right")
+        ax.tick_params(axis="both", which="major", labelsize=6)
+        ax.grid(True, linestyle="--", linewidth=0.5)
+
+        # Save plot as base64
+        img_stream = io.BytesIO()
+        plt.savefig(img_stream, format="png", dpi=300, bbox_inches="tight")
+        plt.close(fig)
+        img_stream.seek(0)
+        base64_img = base64.b64encode(img_stream.getvalue()).decode('utf-8')
+        return base64_img
+
+    except Exception as e:
+        print(f"Error while plotting: {e}")
+        return None
+

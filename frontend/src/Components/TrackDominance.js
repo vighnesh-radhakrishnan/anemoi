@@ -117,23 +117,23 @@ const TrackDominance = () => {
           <SessionDetails>
             <div>
               <strong>Grand Prix:</strong>
-              <span>{dominanceData.session.GrandPrix}</span>
+              <span>{dominanceData.gp}</span>
             </div>
             <div>
               <strong>Year:</strong>
-              <span>{dominanceData.session.Year}</span>
+              <span>{dominanceData.year}</span>
             </div>
             <div>
               <strong>Identifier</strong>
-              <span>{dominanceData.session?.Identifier}</span>
+              <span>{dominanceData.identifier}</span>
             </div>
             <div>
               <strong>Driver 1:</strong>
-              <span>{dominanceData.session.Driver1}</span>
+              <span>{dominanceData.driver1}</span>
             </div>
             <div>
               <strong>Driver 2:</strong>
-              <span>{dominanceData.session.Driver2}</span>
+              <span>{dominanceData.driver2}</span>
             </div>
           </SessionDetails>
 

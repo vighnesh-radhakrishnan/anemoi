@@ -78,26 +78,26 @@ const TrackDominance = () => {
         />
         <input
           type="text"
-          placeholder="Enter Session Identifier (e.g., Race)"
+          placeholder="Enter Session Identifier"
           value={sessionIdentifier}
           onChange={handleIdentifierChange}
           required
         />
         <input
           type="text"
-          placeholder="Enter Driver 1 (e.g., HAM)"
+          placeholder="Enter Driver 1 (e.g, HAM)"
           value={driver1}
           onChange={handleDriver1Change}
           required
         />
         <input
           type="text"
-          placeholder="Enter Driver 2 (e.g., VER)"
+          placeholder="Enter Driver 2 (e.g, VER)"
           value={driver2}
           onChange={handleDriver2Change}
           required
         />
-        <button type="submit">Get Dominance Details</button>
+        <button type="submit">Get Data</button>
       </FormWrapper>
 
       {loading && (

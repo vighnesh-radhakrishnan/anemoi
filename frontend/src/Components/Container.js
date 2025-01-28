@@ -85,6 +85,10 @@ export const FormWrapper = styled.form`
     font-family: futura;
   }
 
+  input[type="number"] {
+    width: 100px;
+  }
+
   select {
     display: flex;
     padding: 10px;
@@ -110,6 +114,7 @@ export const FormWrapper = styled.form`
 
   button {
     padding: 10px 20px;
+    white-space: nowrap;
     background-color: #e10600;
     color: #fff;
     border: 2px solid #e10600;

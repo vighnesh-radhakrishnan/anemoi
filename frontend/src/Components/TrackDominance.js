@@ -54,7 +54,7 @@ const TrackDominance = () => {
 
   return (
     <PageWrapper>
-      <h1>Track Dominance Details</h1>
+      <h1>Track Dominance</h1>
 
       <FormWrapper
         onSubmit={handleSubmit}
@@ -97,7 +97,7 @@ const TrackDominance = () => {
           onChange={handleDriver2Change}
           required
         />
-        <button type="submit">Get Data</button>
+        <button type="submit">Get Plot</button>
       </FormWrapper>
 
       {loading && (

@@ -140,8 +140,8 @@ const TrackDominance = () => {
           {dominanceData.image_base64 && (
             <div>
               <h2 className="image-header">
-                Track Dominance: {dominanceData.session.Driver1} vs{" "}
-                {dominanceData.session.Driver2}
+                Track Dominance: {dominanceData.session.driver1} vs{" "}
+                {dominanceData.session.driver2}
               </h2>
               <div className="image-container">
                 <img

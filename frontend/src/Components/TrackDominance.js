@@ -12,6 +12,7 @@ import {
 const TrackDominance = () => {
   const [selectedYear, setSelectedYear] = useState("");
   const [grandPrix, setGrandPrix] = useState("");
+  const [sessionIdentifier, setSessionIdentifier] = useState("");
   const [driver1, setDriver1] = useState("");
   const [driver2, setDriver2] = useState("");
   const [dominanceData, setDominanceData] = useState(null);
@@ -20,6 +21,8 @@ const TrackDominance = () => {
 
   const handleYearChange = (event) => setSelectedYear(event.target.value);
   const handleGrandPrixChange = (event) => setGrandPrix(event.target.value);
+  const handleIdentifierChange = (event) =>
+    setSessionIdentifier(event.target.value);
   const handleDriver1Change = (event) => setDriver1(event.target.value);
   const handleDriver2Change = (event) => setDriver2(event.target.value);
 
@@ -31,7 +34,7 @@ const TrackDominance = () => {
 
     try {
       const response = await axios.get(
-        `https://anemoi-backend.onrender.com/track-dominance?year=${selectedYear}&gp=${grandPrix}&driver1=${driver1}&driver2=${driver2}`
+        `https://anemoi-backend.onrender.com/track-dominance?year=${selectedYear}&gp=${grandPrix}&identifier=${sessionIdentifier}&driver1=${driver1}&driver2=${driver2}`
       );
       if (response.data.error) {
         setError(true);
@@ -75,6 +78,13 @@ const TrackDominance = () => {
         />
         <input
           type="text"
+          placeholder="Enter Session Identifier (e.g., Race)"
+          value={sessionIdentifier}
+          onChange={handleIdentifierChange}
+          required
+        />
+        <input
+          type="text"
           placeholder="Enter Driver 1 (e.g., HAM)"
           value={driver1}
           onChange={handleDriver1Change}
@@ -112,6 +122,10 @@ const TrackDominance = () => {
             <div>
               <strong>Year:</strong>
               <span>{dominanceData.session.Year}</span>
+            </div>
+            <div>
+              <strong>Identifier</strong>
+              <span>{dominanceData.session?.Identifier}</span>
             </div>
             <div>
               <strong>Driver 1:</strong>

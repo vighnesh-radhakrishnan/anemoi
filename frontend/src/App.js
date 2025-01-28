@@ -6,6 +6,7 @@ import Circuits from "./Components/Circuits";
 import Standings from "./Components/Standings";
 import Constructors from "./Components/Constructors";
 import Drivers from "./Components/Drivers";
+import TrackDominance from "./Components/TrackDominance";
 import { PageWrapper, TabWrapper, Tab } from "./Components/Container";
 
 function App() {
@@ -44,6 +45,12 @@ function App() {
             Fastest Lap
           </Tab>
           <Tab
+            active={activeTab === "trackdominance"}
+            onClick={() => handleTabChange("trackdominance")}
+          >
+            Track Dominance
+          </Tab>
+          <Tab
             active={activeTab === "circuits"}
             onClick={() => handleTabChange("circuits")}
           >
@@ -67,6 +74,7 @@ function App() {
           {activeTab === "session" && <Session />}
           {activeTab === "calendar" && <Calendar />}
           {activeTab === "fastestLap" && <FastestLap />}
+          {activeTab === "trackdominance" && <TrackDominance />}
           {activeTab === "circuits" && <Circuits />}
           {activeTab === "standings" && <Standings />}
           {activeTab === "constructors" && <Constructors />}

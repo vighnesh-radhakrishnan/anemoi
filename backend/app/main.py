@@ -557,50 +557,62 @@ async def get_track_dominance_base64(
 
 def plot_track_dominance_to_base64(telemetry1, telemetry2, driver1, driver2, event_name):
     try:
-        # Ensure necessary columns exist in telemetry
-        required_columns = {"Distance", "X", "Y"}
-        if not required_columns.issubset(telemetry1.columns) or not required_columns.issubset(telemetry2.columns):
-            raise ValueError("Telemetry data is incomplete or missing necessary columns.")
-
-        # Prepare data for plotting
-        distance1 = telemetry1["Distance"].to_numpy()
-        speed1 = telemetry1["Speed"].to_numpy()
-
-        distance2 = telemetry2["Distance"].to_numpy()
-        speed2 = telemetry2["Speed"].to_numpy()
-
-        # Normalize the distances to align them for comparison
-        min_length = min(len(distance1), len(distance2))
-        distance1, speed1 = distance1[:min_length], speed1[:min_length]
-        distance2, speed2 = distance2[:min_length], speed2[:min_length]
-
-        # Compute speed difference
-        speed_diff = speed1 - speed2
-
-        # Plot the dominance map
-        fig, ax = plt.subplots(figsize=(6, 4))  # Adjust plot size to match existing dimensions
-        ax.plot(distance1, speed_diff, color="blue", label=f"{driver1} - {driver2}")
-        ax.axhline(0, color="black", linestyle="--", linewidth=0.8)
-        ax.fill_between(distance1, 0, speed_diff, where=(speed_diff > 0), color="green", alpha=0.5, label=f"{driver1} Faster")
-        ax.fill_between(distance1, 0, speed_diff, where=(speed_diff < 0), color="red", alpha=0.5, label=f"{driver2} Faster")
-
-        # Customize the plot
-        ax.set_title(f"Track Dominance: {driver1} vs {driver2} - {event_name}", fontsize=10)
-        ax.set_xlabel("Distance (m)", fontsize=8)
-        ax.set_ylabel("Speed Difference (km/h)", fontsize=8)
-        ax.legend(fontsize=6, loc="upper right")
-        ax.tick_params(axis="both", which="major", labelsize=6)
-        ax.grid(True, linestyle="--", linewidth=0.5)
-
+        # Divide track into minisectors
+        num_minisectors = 21
+        total_distance = max(max(telemetry1['Distance']), max(telemetry2['Distance']))
+        minisector_length = total_distance / num_minisectors
+        
+        telemetry1['Minisector'] = telemetry1['Distance'].apply(lambda d: int(d // minisector_length))
+        telemetry2['Minisector'] = telemetry2['Distance'].apply(lambda d: int(d // minisector_length))
+        
+        # Average speed for each driver per minisector
+        avg_speed1 = telemetry1.groupby('Minisector')['Speed'].mean()
+        avg_speed2 = telemetry2.groupby('Minisector')['Speed'].mean()
+        
+        # Determine which driver is fastest per minisector
+        minisector_data = avg_speed1.compare(avg_speed2, keep_shape=True)
+        minisector_data['Fastest'] = np.where(minisector_data['self'] > minisector_data['other'], driver1, driver2)
+        telemetry1 = telemetry1.merge(minisector_data[['Fastest']], how='left', left_on='Minisector', right_index=True)
+        
+        # Plot the track with colored segments
+        x = telemetry1['X'].to_numpy()
+        y = telemetry1['Y'].to_numpy()
+        points = np.array([x, y]).T.reshape(-1, 1, 2)
+        segments = np.concatenate([points[:-1], points[1:]], axis=1)
+        
+        # Convert drivers to integers for coloring
+        telemetry1['Fastest_Int'] = telemetry1['Fastest'].map({driver1: 1, driver2: 2}).fillna(0)
+        fastest_driver_array = telemetry1['Fastest_Int'].to_numpy().astype(float)
+        
+        # Create line collection
+        cmap = plt.get_cmap('cool', 2)
+        lc = LineCollection(segments, cmap=cmap, norm=plt.Normalize(1, 2))
+        lc.set_array(fastest_driver_array)
+        lc.set_linewidth(3)
+        
+        # Plot
+        fig, ax = plt.subplots(figsize=(12, 6))
+        ax.add_collection(lc)
+        ax.autoscale()
+        ax.set_aspect('equal', 'box')
+        ax.axis('off')
+        
+        # Colorbar
+        cbar = plt.colorbar(lc, ax=ax, boundaries=[1, 2, 3], ticks=[1.5, 2.5])
+        cbar.set_ticklabels([driver1, driver2])
+        cbar.set_label('Driver')
+        
+        # Title
+        ax.set_title(f"{event_name}: {driver1} vs {driver2} Track Dominance", fontsize=16)
+        
         # Save plot as base64
         img_stream = io.BytesIO()
-        plt.savefig(img_stream, format="png", dpi=300, bbox_inches="tight")
+        plt.savefig(img_stream, format='png', dpi=300, bbox_inches='tight')
         plt.close(fig)
         img_stream.seek(0)
         base64_img = base64.b64encode(img_stream.getvalue()).decode('utf-8')
         return base64_img
 
     except Exception as e:
-        print(f"Error while plotting: {e}")
+        print(f"Error while plotting track dominance: {e}")
         return None
-

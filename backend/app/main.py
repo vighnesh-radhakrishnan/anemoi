@@ -508,7 +508,14 @@ async def get_track_dominance_base64(
 
         # Check if valid laps exist for both drivers
         if lap_driver1.empty or lap_driver2.empty:
-            return JSONResponse(content={"error": "Fastest laps unavailable for one or both drivers"})
+            return JSONResponse(content={
+                "error": "Fastest laps unavailable for one or both drivers",
+                "driver1": driver1,
+                "driver2": driver2,
+                "gp": gp,
+                "identifier": identifier,
+                "year": year
+            })
 
         # Retrieve telemetry for both drivers
         telemetry_driver1 = lap_driver1.get_telemetry().add_distance()
@@ -519,12 +526,33 @@ async def get_track_dominance_base64(
             telemetry_driver1, telemetry_driver2, driver1, driver2, session.event["EventName"]
         )
         if base64_img:
-            return JSONResponse(content={"image_base64": base64_img})
+            return JSONResponse(content={
+                "image_base64": base64_img,
+                "driver1": driver1,
+                "driver2": driver2,
+                "gp": gp,
+                "identifier": identifier,
+                "year": year
+            })
         else:
-            return JSONResponse(content={"error": "Failed to generate track dominance plot"})
+            return JSONResponse(content={
+                "error": "Failed to generate track dominance plot",
+                "driver1": driver1,
+                "driver2": driver2,
+                "gp": gp,
+                "identifier": identifier,
+                "year": year
+            })
     except Exception as e:
         print(f"Error: {e}")
-        return JSONResponse(content={"error": "An error occurred while processing the data"})
+        return JSONResponse(content={
+            "error": "An error occurred while processing the data",
+            "driver1": driver1,
+            "driver2": driver2,
+            "gp": gp,
+            "identifier": identifier,
+            "year": year
+        })
 
 
 def plot_track_dominance_to_base64(telemetry1, telemetry2, driver1, driver2, event_name):

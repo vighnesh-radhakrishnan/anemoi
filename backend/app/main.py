@@ -576,6 +576,13 @@ def plot_track_dominance_to_base64(telemetry1, telemetry2, driver1, driver2, eve
         avg_speed2 = telemetry2.groupby('Minisector')['Speed'].mean()
         
         # Determine fastest driver per minisector
+        common_index = avg_speed1.index.union(avg_speed2.index)
+        avg_speed1 = avg_speed1.reindex(common_index, fill_value=np.nan)
+        avg_speed2 = avg_speed2.reindex(common_index, fill_value=np.nan)
+
+        if avg_speed1.isnull().all() or avg_speed2.isnull().all():
+            return JSONResponse(content={"error": "Insufficient minisector data for comparison"})
+
         minisector_data = avg_speed1.compare(avg_speed2, keep_shape=True)
         minisector_data['Fastest'] = np.where(minisector_data['self'] > minisector_data['other'], driver1, driver2)
         telemetry1 = telemetry1.merge(minisector_data[['Fastest']], how='left', left_on='Minisector', right_index=True)

@@ -8,6 +8,9 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from matplotlib import pyplot as plt
 from matplotlib.collections import LineCollection
+import matplotlib.cm as cm
+import matplotlib.colors as mcolors
+import matplotlib.collections as mc
 import requests
 
 app = FastAPI()
@@ -500,7 +503,7 @@ async def get_track_dominance_base64(
     try:
         # Load the session data and telemetry
         session = fastf1.get_session(year, gp, identifier)
-        session.load(laps=True, telemetry=True, weather=False, messages=False)
+        session.load(laps=True, telemetry=False, weather=False, messages=False, livedata=None)
         
         # Get the fastest laps for both drivers
         lap_driver1 = session.laps.pick_drivers(driver1).pick_fastest()
@@ -518,8 +521,8 @@ async def get_track_dominance_base64(
             })
 
         # Retrieve telemetry for both drivers
-        telemetry_driver1 = lap_driver1.get_telemetry().add_distance()
-        telemetry_driver2 = lap_driver2.get_telemetry().add_distance()
+        telemetry_driver1 = lap_driver1.get_car_data().add_distance()
+        telemetry_driver2 = lap_driver2.get_car_data().add_distance()
 
         # Generate the track dominance plot as base64
         base64_img = plot_track_dominance_to_base64(
@@ -559,49 +562,54 @@ def plot_track_dominance_to_base64(telemetry1, telemetry2, driver1, driver2, eve
     try:
         # Divide track into minisectors
         num_minisectors = 21
-        total_distance = max(max(telemetry1['Distance']), max(telemetry2['Distance']))
+        total_distance = max(telemetry1['Distance'].max(), telemetry2['Distance'].max())
         minisector_length = total_distance / num_minisectors
         
-        telemetry1['Minisector'] = telemetry1['Distance'].apply(lambda d: int(d // minisector_length))
-        telemetry2['Minisector'] = telemetry2['Distance'].apply(lambda d: int(d // minisector_length))
+        telemetry1_numpy = telemetry1[['Distance', 'Speed']].to_numpy()
+        telemetry2_numpy = telemetry2[['Distance', 'Speed']].to_numpy()
+        
+        telemetry1['Minisector'] = np.floor(telemetry1_numpy[:, 0] / minisector_length).astype(int)
+        telemetry2['Minisector'] = np.floor(telemetry2_numpy[:, 0] / minisector_length).astype(int)
         
         # Average speed for each driver per minisector
         avg_speed1 = telemetry1.groupby('Minisector')['Speed'].mean()
         avg_speed2 = telemetry2.groupby('Minisector')['Speed'].mean()
         
-        # Determine which driver is fastest per minisector
+        # Determine fastest driver per minisector
         minisector_data = avg_speed1.compare(avg_speed2, keep_shape=True)
         minisector_data['Fastest'] = np.where(minisector_data['self'] > minisector_data['other'], driver1, driver2)
         telemetry1 = telemetry1.merge(minisector_data[['Fastest']], how='left', left_on='Minisector', right_index=True)
         
-        # Plot the track with colored segments
+        # Convert fastest driver to numerical values
+        driver_colors = {driver1: 'red', driver2: 'blue'}  # Assign specific colors
+        telemetry1['Fastest_Int'] = telemetry1['Fastest'].map({driver1: 1, driver2: 2}).fillna(0)
+        fastest_driver_array = telemetry1['Fastest_Int'].to_numpy().astype(float)
+        
+        # Create line collection
         x = telemetry1['X'].to_numpy()
         y = telemetry1['Y'].to_numpy()
         points = np.array([x, y]).T.reshape(-1, 1, 2)
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
         
-        # Convert drivers to integers for coloring
-        telemetry1['Fastest_Int'] = telemetry1['Fastest'].map({driver1: 1, driver2: 2}).fillna(0)
-        fastest_driver_array = telemetry1['Fastest_Int'].to_numpy().astype(float)
-        
-        # Create line collection
-        cmap = plt.get_cmap('cool', 2)
-        lc = LineCollection(segments, cmap=cmap, norm=plt.Normalize(1, 2))
+        cmap = cm.get_cmap("coolwarm", 2)  # Improved color map
+        norm = mcolors.Normalize(1, 2)
+        lc = mc.LineCollection(segments, cmap=cmap, norm=norm)
         lc.set_array(fastest_driver_array)
-        lc.set_linewidth(2)
+        lc.set_linewidth(0.5)
         
         # Plot
-        fig, ax = plt.subplots(figsize=(10, 5))
+        fig, ax = plt.subplots(figsize=(8, 4))
         ax.add_collection(lc)
         ax.autoscale()
         ax.set_aspect('equal', 'box')
         ax.axis('off')
+
+        # Minimalistic Legend (Instead of Thick Colorbar)
+        for driver, color in driver_colors.items():
+            ax.plot([], [], color=color, linewidth=3, label=f"— {driver.upper()}")  # Small line legend
         
-        # Colorbar
-        cbar = plt.colorbar(lc, ax=ax, boundaries=[1, 2, 3], ticks=[1.5, 2.5])
-        cbar.set_ticklabels([driver1, driver2])
-        cbar.set_label('Driver')
-        
+        ax.legend(loc="upper right", frameon=False, handlelength=2, handletextpad=0.6, fontsize=10)
+
         # Title
         ax.set_title(f"{event_name}: {driver1} vs {driver2} Track Dominance", fontsize=16)
         

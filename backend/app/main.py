@@ -562,15 +562,26 @@ def plot_track_dominance_to_base64(telemetry1, telemetry2, driver1, driver2, eve
     try:
         # Divide track into minisectors
         num_minisectors = 21
-        total_distance = max(max(telemetry1['Distance']), max(telemetry2['Distance']))
+        total_distance = max(telemetry1['Distance'].max(), telemetry2['Distance'].max())
         minisector_length = total_distance / num_minisectors
         
-        telemetry1['Minisector'] = telemetry1['Distance'].apply(lambda d: int(d // minisector_length))
-        telemetry2['Minisector'] = telemetry2['Distance'].apply(lambda d: int(d // minisector_length))
+        telemetry1_numpy = telemetry1[['Distance', 'Speed']].to_numpy()
+        telemetry2_numpy = telemetry2[['Distance', 'Speed']].to_numpy()
+        
+        telemetry1['Minisector'] = np.floor(telemetry1_numpy[:, 0] / minisector_length).astype(int)
+        telemetry2['Minisector'] = np.floor(telemetry2_numpy[:, 0] / minisector_length).astype(int)
         
         # Average speed for each driver per minisector
         avg_speed1 = telemetry1.groupby('Minisector')['Speed'].mean()
         avg_speed2 = telemetry2.groupby('Minisector')['Speed'].mean()
+        
+        # Determine fastest driver per minisector
+        common_index = avg_speed1.index.union(avg_speed2.index)
+        avg_speed1 = avg_speed1.reindex(common_index, fill_value=np.nan)
+        avg_speed2 = avg_speed2.reindex(common_index, fill_value=np.nan)
+
+        if avg_speed1.isnull().all() or avg_speed2.isnull().all():
+            return JSONResponse(content={"error": "Insufficient minisector data for comparison"})
         
         # Determine which driver is fastest per minisector
         minisector_data = avg_speed1.compare(avg_speed2, keep_shape=True)

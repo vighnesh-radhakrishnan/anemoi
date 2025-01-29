@@ -568,45 +568,73 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
         
         fastest_driver_array = telemetry_drivers['Fastest_driver_int'].to_numpy().astype(float)
 
-        # Create the plot
-        plt.rcParams['figure.figsize'] = [12, 6]
-        fig, ax = plt.subplots()
+        # Define colors for each driver (using the same colors for both legend and plot)
+        driver_colors = {
+            driver1: "#1f77b4",  # Blue
+            driver2: "#ff7f0e"   # Orange
+        }
 
-        # Define colors for each driver
-        driver_colors = {driver1: "#1f77b4", driver2: "#ff7f0e"}
+        # Create custom colormap using the driver colors
+        colors = [driver_colors[driver1], driver_colors[driver2]]
+        custom_cmap = LinearSegmentedColormap.from_list("custom", colors, N=2)
+
+        # Set figure size to be more compact
+        plt.rcParams['figure.figsize'] = [8, 4.5]  # Reduced from [12, 6]
         
+        # Create figure with proper spacing for legend
+        fig = plt.figure()
+        gs = GridSpec(1, 1, figure=fig)
+        ax = fig.add_subplot(gs[0, 0])
+
         # Create line collection with custom coloring
-        cmap = plt.get_cmap('spring', 2)
-        lc_comp = LineCollection(segments, norm=plt.Normalize(1, cmap.N+1), cmap=cmap)
+        lc_comp = LineCollection(segments, norm=plt.Normalize(1, 2), cmap=custom_cmap)
         lc_comp.set_array(fastest_driver_array)
-        lc_comp.set_linewidth(5)
+        lc_comp.set_linewidth(3)  # Reduced from 5 to make it less dominant
 
         # Add the line collection to the plot
         ax.add_collection(lc_comp)
 
-        # Set proper axis limits
-        ax.set_xlim(x.min() - 100, x.max() + 100)  # Add padding
-        ax.set_ylim(y.min() - 100, y.max() + 100)  # Add padding
+        # Set proper axis limits with reduced padding
+        padding = (max(x.max() - x.min(), y.max() - y.min()) * 0.05)  # 5% padding
+        ax.set_xlim(x.min() - padding, x.max() + padding)
+        ax.set_ylim(y.min() - padding, y.max() + padding)
         
         # Set aspect ratio and turn off axis
         ax.set_aspect('equal')
         ax.axis('off')
 
-        # Add custom legend
+        # Add custom legend with proper spacing
         legend_elements = [
             mlines.Line2D([0], [0], color=driver_colors[driver1], lw=2, label=driver1),
             mlines.Line2D([0], [0], color=driver_colors[driver2], lw=2, label=driver2)
         ]
-        ax.legend(handles=legend_elements, loc='upper right', frameon=False)
+        
+        # Place legend below the plot
+        ax.legend(handles=legend_elements, 
+                 loc='upper center', 
+                 bbox_to_anchor=(0.5, -0.05),
+                 ncol=2,  # Place drivers side by side
+                 frameon=False)
 
-        # Add title
-        plt.title(f"{year} {gp} | {session_type} {driver1} vs {driver2}", 
-                 color='silver', fontsize=16)
+        # Add title with adjusted position
+        plt.title(f"{year} {gp} | {session_type}\n{driver1} vs {driver2}", 
+                 color='silver', 
+                 fontsize=14,  # Reduced from 16
+                 pad=10)  # Add padding between title and plot
 
-        # Convert to base64
+        # Adjust layout to prevent overlapping
+        plt.tight_layout()
+
+        # Convert to base64 with adjusted parameters
         img_stream = io.BytesIO()
-        plt.savefig(img_stream, format='png', dpi=300, bbox_inches='tight', 
-                   facecolor='none', edgecolor='none', transparent=True)
+        plt.savefig(img_stream, 
+                   format='png', 
+                   dpi=300, 
+                   bbox_inches='tight',
+                   facecolor='none', 
+                   edgecolor='none',
+                   transparent=True,
+                   pad_inches=0.2)  # Add some padding around the entire figure
         plt.close()
         
         img_stream.seek(0)

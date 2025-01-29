@@ -632,18 +632,13 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
                  loc='center left', 
                  bbox_to_anchor=(1.05, 0.5),
                  frameon=False)
-        
-        # Add title with adjusted size
-        plt.title(f"{year} {gp} | {session_type}\n{driver1} vs {driver2}", 
-                 color='black', 
-                 fontsize=12,
-                 pad=20)  # Add padding to prevent overlap
+    
         
         # Save figure with adjusted layout
         img_stream = io.BytesIO()
         plt.savefig(img_stream, 
                    format='png', 
-                   dpi=200,  # Reduced DPI for more reasonable file size
+                   dpi=300, 
                    bbox_inches='tight',  # Tight layout
                    facecolor='none',    # White background
                    edgecolor='none',

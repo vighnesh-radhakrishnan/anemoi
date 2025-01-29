@@ -512,9 +512,12 @@ async def get_track_dominance_base64(
         if lap_driver1.empty or lap_driver2.empty:
             return JSONResponse(content={"error": "Fastest laps unavailable for one or both drivers"})
 
-        # Retrieve telemetry
-        telemetry_driver1 = lap_driver1.get_car_data().add_distance()
-        telemetry_driver2 = lap_driver2.get_car_data().add_distance()
+        # Retrieve telemetry (ensure Distance column is available)
+        telemetry_driver1 = lap_driver1.get_telemetry().add_distance()
+        telemetry_driver2 = lap_driver2.get_telemetry().add_distance()
+
+        if 'Distance' not in telemetry_driver1.columns or 'Distance' not in telemetry_driver2.columns:
+            return JSONResponse(content={"error": "Distance data unavailable for one or both drivers"})
 
         # Ensure positional data exists
         telemetry_pos1 = lap_driver1.get_pos_data()
@@ -523,8 +526,13 @@ async def get_track_dominance_base64(
         if telemetry_pos1.empty or telemetry_pos2.empty:
             return JSONResponse(content={"error": "Position data unavailable for one or both drivers"})
 
-        telemetry_driver1 = telemetry_driver1.merge(telemetry_pos1[['Distance', 'X', 'Y']], on='Distance', how='left')
-        telemetry_driver2 = telemetry_driver2.merge(telemetry_pos2[['Distance', 'X', 'Y']], on='Distance', how='left')
+        # Merge position data with telemetry based on Distance
+        telemetry_driver1 = telemetry_driver1.merge(
+            telemetry_pos1[['Distance', 'X', 'Y']], on='Distance', how='left'
+        )
+        telemetry_driver2 = telemetry_driver2.merge(
+            telemetry_pos2[['Distance', 'X', 'Y']], on='Distance', how='left'
+        )
 
         # Check if 'X' and 'Y' exist
         if 'X' not in telemetry_driver1.columns or 'Y' not in telemetry_driver1.columns:
@@ -582,7 +590,7 @@ def plot_track_dominance_to_base64(telemetry1, telemetry2, driver1, driver2, eve
 
         # Define colors
         driver_colors = {driver1: "#1f77b4", driver2: "#ff7f0e"}
-        cmap = cm.spring  # Alternatively, use a colormap like 'RdBu', 'spring', etc.
+        cmap = plt.get_cmap("spring")  # Alternatively, use 'RdBu', 'spring', etc.
         lc = LineCollection(segments, cmap=cmap, norm=plt.Normalize(1, 2))
         lc.set_array(fastest_driver_array)
         lc.set_linewidth(2)

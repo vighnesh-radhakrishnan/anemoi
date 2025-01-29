@@ -8,6 +8,9 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from matplotlib import pyplot as plt
 from matplotlib.collections import LineCollection
+import matplotlib.cm as cm
+import matplotlib.colors as mcolors
+import matplotlib.lines as mlines
 import requests
 
 app = FastAPI()
@@ -498,113 +501,109 @@ async def get_track_dominance_base64(
     driver2: str
 ):
     try:
-        # Load the session data and telemetry
+        # Load session data
         session = fastf1.get_session(year, gp, identifier)
-        session.load(laps=True, telemetry=True, weather=False, messages=False)
+        session.load(laps=True, telemetry=True, weather=False, messages=False, livedata=None)
         
-        # Get the fastest laps for both drivers
+        # Get fastest laps
         lap_driver1 = session.laps.pick_drivers(driver1).pick_fastest()
         lap_driver2 = session.laps.pick_drivers(driver2).pick_fastest()
 
-        # Check if valid laps exist for both drivers
         if lap_driver1.empty or lap_driver2.empty:
-            return JSONResponse(content={
-                "error": "Fastest laps unavailable for one or both drivers",
-                "driver1": driver1,
-                "driver2": driver2,
-                "gp": gp,
-                "identifier": identifier,
-                "year": year
-            })
+            return JSONResponse(content={"error": "Fastest laps unavailable for one or both drivers"})
 
-        # Retrieve telemetry for both drivers
-        telemetry_driver1 = lap_driver1.get_telemetry().add_distance()
-        telemetry_driver2 = lap_driver2.get_telemetry().add_distance()
+        # Retrieve telemetry
+        telemetry_driver1 = lap_driver1.get_car_data().add_distance()
+        telemetry_driver2 = lap_driver2.get_car_data().add_distance()
 
-        # Generate the track dominance plot as base64
+        # Ensure positional data exists
+        telemetry_pos1 = lap_driver1.get_pos_data()
+        telemetry_pos2 = lap_driver2.get_pos_data()
+
+        if telemetry_pos1.empty or telemetry_pos2.empty:
+            return JSONResponse(content={"error": "Position data unavailable for one or both drivers"})
+
+        telemetry_driver1 = telemetry_driver1.merge(telemetry_pos1[['Distance', 'X', 'Y']], on='Distance', how='left')
+        telemetry_driver2 = telemetry_driver2.merge(telemetry_pos2[['Distance', 'X', 'Y']], on='Distance', how='left')
+
+        # Check if 'X' and 'Y' exist
+        if 'X' not in telemetry_driver1.columns or 'Y' not in telemetry_driver1.columns:
+            return JSONResponse(content={"error": "Missing positional data for driver1"})
+        if 'X' not in telemetry_driver2.columns or 'Y' not in telemetry_driver2.columns:
+            return JSONResponse(content={"error": "Missing positional data for driver2"})
+
+        # Generate the plot
         base64_img = plot_track_dominance_to_base64(
             telemetry_driver1, telemetry_driver2, driver1, driver2, session.event["EventName"]
         )
         if base64_img:
-            return JSONResponse(content={
-                "image_base64": base64_img,
-                "driver1": driver1,
-                "driver2": driver2,
-                "gp": gp,
-                "identifier": identifier,
-                "year": year
-            })
+            return JSONResponse(content={"image_base64": base64_img})
         else:
-            return JSONResponse(content={
-                "error": "Failed to generate track dominance plot",
-                "driver1": driver1,
-                "driver2": driver2,
-                "gp": gp,
-                "identifier": identifier,
-                "year": year
-            })
+            return JSONResponse(content={"error": "Failed to generate track dominance plot"})
+
     except Exception as e:
         print(f"Error: {e}")
-        return JSONResponse(content={
-            "error": "An error occurred while processing the data",
-            "driver1": driver1,
-            "driver2": driver2,
-            "gp": gp,
-            "identifier": identifier,
-            "year": year
-        })
+        return JSONResponse(content={"error": f"An error occurred: {str(e)}"})
 
 
 def plot_track_dominance_to_base64(telemetry1, telemetry2, driver1, driver2, event_name):
     try:
         # Divide track into minisectors
         num_minisectors = 21
-        total_distance = max(max(telemetry1['Distance']), max(telemetry2['Distance']))
+        total_distance = max(telemetry1['Distance'].max(), telemetry2['Distance'].max())
         minisector_length = total_distance / num_minisectors
-        
-        telemetry1['Minisector'] = telemetry1['Distance'].apply(lambda d: int(d // minisector_length))
-        telemetry2['Minisector'] = telemetry2['Distance'].apply(lambda d: int(d // minisector_length))
-        
-        # Average speed for each driver per minisector
+
+        telemetry1['Minisector'] = (telemetry1['Distance'] // minisector_length).astype(int)
+        telemetry2['Minisector'] = (telemetry2['Distance'] // minisector_length).astype(int)
+
+        # Average speed per minisector
         avg_speed1 = telemetry1.groupby('Minisector')['Speed'].mean()
         avg_speed2 = telemetry2.groupby('Minisector')['Speed'].mean()
-        
-        # Determine which driver is fastest per minisector
-        minisector_data = avg_speed1.compare(avg_speed2, keep_shape=True)
-        minisector_data['Fastest'] = np.where(minisector_data['self'] > minisector_data['other'], driver1, driver2)
-        telemetry1 = telemetry1.merge(minisector_data[['Fastest']], how='left', left_on='Minisector', right_index=True)
-        
-        # Plot the track with colored segments
+
+        # Ensure both indices align
+        common_index = avg_speed1.index.union(avg_speed2.index)
+        avg_speed1 = avg_speed1.reindex(common_index, fill_value=np.nan)
+        avg_speed2 = avg_speed2.reindex(common_index, fill_value=np.nan)
+
+        # Determine the fastest driver per minisector
+        fastest_driver = np.where(avg_speed1 > avg_speed2, driver1, driver2)
+        minisector_data = pd.DataFrame({'Fastest': fastest_driver}, index=common_index)
+
+        telemetry1 = telemetry1.merge(minisector_data, how='left', left_on='Minisector', right_index=True)
+
+        # Plot the track
         x = telemetry1['X'].to_numpy()
         y = telemetry1['Y'].to_numpy()
         points = np.array([x, y]).T.reshape(-1, 1, 2)
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
-        
-        # Convert drivers to integers for coloring
+
         telemetry1['Fastest_Int'] = telemetry1['Fastest'].map({driver1: 1, driver2: 2}).fillna(0)
         fastest_driver_array = telemetry1['Fastest_Int'].to_numpy().astype(float)
-        
-        # Create line collection
-        cmap = plt.get_cmap('cool', 2)
+
+        # Define colors
+        driver_colors = {driver1: "#1f77b4", driver2: "#ff7f0e"}
+        cmap = mcolors.ListedColormap([driver_colors[driver1], driver_colors[driver2]])
         lc = LineCollection(segments, cmap=cmap, norm=plt.Normalize(1, 2))
         lc.set_array(fastest_driver_array)
-        lc.set_linewidth(1)
-        
-        # Plot
-        fig, ax = plt.subplots(figsize=(3, 1.5))
+        lc.set_linewidth(2)
+
+        # Plot the track
+        fig, ax = plt.subplots(figsize=(10, 5))
         ax.add_collection(lc)
         ax.autoscale()
         ax.set_aspect('equal', 'box')
         ax.axis('off')
-        
-        # Colorbar
-        cbar = plt.colorbar(lc, ax=ax, boundaries=[1, 2, 3], ticks=[1.5, 2.5])
-        cbar.set_ticklabels([driver1, driver2])
-        cbar.set_label('Driver')
-        
+
+        # Custom legend
+        legend_elements = [
+            mlines.Line2D([0, 1], [0, 0], color=driver_colors[driver1], lw=3, label=f'— {driver1}'),
+            mlines.Line2D([0, 1], [0, 0], color=driver_colors[driver2], lw=3, label=f'— {driver2}')
+        ]
+        ax.legend(handles=legend_elements, loc='upper right', frameon=False, fontsize=10)
+
         # Title
         ax.set_title(f"{event_name}: {driver1} vs {driver2} Track Dominance", fontsize=16)
-        
+
         # Save plot as base64
         img_stream = io.BytesIO()
         plt.savefig(img_stream, format='png', dpi=300, bbox_inches='tight')

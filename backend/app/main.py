@@ -8,10 +8,9 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from matplotlib import pyplot as plt
 from matplotlib.collections import LineCollection
-import matplotlib.cm as cm
-import matplotlib.colors as mcolors
 import matplotlib.lines as mlines
 import requests
+from matplotlib.colors import ListedColormap
 
 app = FastAPI()
 
@@ -583,7 +582,7 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
         # Convert driver names to integers for coloring
         telemetry_drivers.loc[telemetry_drivers['Fastest_driver'] == driver1, 'Fastest_driver_int'] = 1
         telemetry_drivers.loc[telemetry_drivers['Fastest_driver'] == driver2, 'Fastest_driver_int'] = 2
-
+        
         # Prepare coordinates for plotting
         x = np.array(telemetry_drivers['X'].values)
         y = np.array(telemetry_drivers['Y'].values)
@@ -591,52 +590,71 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
         
         fastest_driver_array = telemetry_drivers['Fastest_driver_int'].to_numpy().astype(float)
-
-        # Create the plot
-        plt.rcParams['figure.figsize'] = [12, 6]
+        
+        # Define consistent colors for both drivers
+        driver_colors = {
+            driver1: "#1f77b4",  # Blue
+            driver2: "#ff7f0e"   # Orange
+        }
+        
+        # Create custom colormap using the driver colors
+        custom_cmap = ListedColormap([driver_colors[driver1], driver_colors[driver2]])
+        
+        # Create the plot with adjusted figure size
+        plt.rcParams['figure.figsize'] = [8, 8]  # Make figure more compact and square
         fig, ax = plt.subplots()
-
-        # Define colors for each driver
-        driver_colors = {driver1: "#1f77b4", driver2: "#ff7f0e"}
         
         # Create line collection with custom coloring
-        cmap = plt.get_cmap('spring', 2)
-        lc_comp = LineCollection(segments, norm=plt.Normalize(1, cmap.N+1), cmap=cmap)
+        lc_comp = LineCollection(segments, norm=plt.Normalize(1, 2), cmap=custom_cmap)
         lc_comp.set_array(fastest_driver_array)
-        lc_comp.set_linewidth(5)
-
+        lc_comp.set_linewidth(3)  # Slightly reduced line width
+        
         # Add the line collection to the plot
         ax.add_collection(lc_comp)
-
-        # Set proper axis limits
-        ax.set_xlim(x.min() - 100, x.max() + 100)  # Add padding
-        ax.set_ylim(y.min() - 100, y.max() + 100)  # Add padding
+        
+        # Set proper axis limits with adjusted padding
+        padding = (max(x.max() - x.min(), y.max() - y.min()) * 0.1)  # 10% padding
+        ax.set_xlim(x.min() - padding, x.max() + padding)
+        ax.set_ylim(y.min() - padding, y.max() + padding)
         
         # Set aspect ratio and turn off axis
         ax.set_aspect('equal')
         ax.axis('off')
-
-        # Add custom legend
+        
+        # Add custom legend with consistent colors
         legend_elements = [
             mlines.Line2D([0], [0], color=driver_colors[driver1], lw=2, label=driver1),
             mlines.Line2D([0], [0], color=driver_colors[driver2], lw=2, label=driver2)
         ]
-        ax.legend(handles=legend_elements, loc='upper right', frameon=False)
-
-        # Add title
-        plt.title(f"{year} {gp} | {session_type} {driver1} vs {driver2}", 
-                 color='silver', fontsize=16)
-
-        # Convert to base64
+        
+        # Place legend outside the plot on the right
+        ax.legend(handles=legend_elements, 
+                 loc='center left', 
+                 bbox_to_anchor=(1.05, 0.5),
+                 frameon=False)
+        
+        # Add title with adjusted size
+        plt.title(f"{year} {gp} | {session_type}\n{driver1} vs {driver2}", 
+                 color='black', 
+                 fontsize=12,
+                 pad=20)  # Add padding to prevent overlap
+        
+        # Save figure with adjusted layout
         img_stream = io.BytesIO()
-        plt.savefig(img_stream, format='png', dpi=300, bbox_inches='tight', 
-                   facecolor='none', edgecolor='none', transparent=True)
+        plt.savefig(img_stream, 
+                   format='png', 
+                   dpi=200,  # Reduced DPI for more reasonable file size
+                   bbox_inches='tight',  # Tight layout
+                   facecolor='none',    # White background
+                   edgecolor='none',
+                   transparent=True,  # Non-transparent background
+                   pad_inches=0.5)       # Add padding around the plot
         plt.close()
         
         img_stream.seek(0)
         base64_img = base64.b64encode(img_stream.getvalue()).decode('utf-8')
         return base64_img
-
+        
     except Exception as e:
         print(f"Error while plotting track dominance: {e}")
         return None

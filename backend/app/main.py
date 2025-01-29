@@ -562,61 +562,52 @@ def plot_track_dominance_to_base64(telemetry1, telemetry2, driver1, driver2, eve
     try:
         # Divide track into minisectors
         num_minisectors = 21
-        total_distance = max(telemetry1['Distance'].max(), telemetry2['Distance'].max())
+        total_distance = max(max(telemetry1['Distance']), max(telemetry2['Distance']))
         minisector_length = total_distance / num_minisectors
         
-        telemetry1_numpy = telemetry1[['Distance', 'Speed']].to_numpy()
-        telemetry2_numpy = telemetry2[['Distance', 'Speed']].to_numpy()
-        
-        telemetry1['Minisector'] = np.floor(telemetry1_numpy[:, 0] / minisector_length).astype(int)
-        telemetry2['Minisector'] = np.floor(telemetry2_numpy[:, 0] / minisector_length).astype(int)
+        telemetry1['Minisector'] = telemetry1['Distance'].apply(lambda d: int(d // minisector_length))
+        telemetry2['Minisector'] = telemetry2['Distance'].apply(lambda d: int(d // minisector_length))
         
         # Average speed for each driver per minisector
         avg_speed1 = telemetry1.groupby('Minisector')['Speed'].mean()
         avg_speed2 = telemetry2.groupby('Minisector')['Speed'].mean()
         
-        # Determine fastest driver per minisector
-        common_index = avg_speed1.index.union(avg_speed2.index)
-        avg_speed1 = avg_speed1.reindex(common_index, fill_value=np.nan)
-        avg_speed2 = avg_speed2.reindex(common_index, fill_value=np.nan)
-
-        if avg_speed1.isnull().all() or avg_speed2.isnull().all():
-            return JSONResponse(content={"error": "Insufficient minisector data for comparison"})
-
+        # Determine which driver is fastest per minisector
         minisector_data = avg_speed1.compare(avg_speed2, keep_shape=True)
         minisector_data['Fastest'] = np.where(minisector_data['self'] > minisector_data['other'], driver1, driver2)
         telemetry1 = telemetry1.merge(minisector_data[['Fastest']], how='left', left_on='Minisector', right_index=True)
         
-        # Convert fastest driver to numerical values
-        driver_colors = {driver1: 'red', driver2: 'blue'}  # Assign specific colors
-        telemetry1['Fastest_Int'] = telemetry1['Fastest'].map({driver1: 1, driver2: 2}).fillna(0)
-        fastest_driver_array = telemetry1['Fastest_Int'].to_numpy().astype(float)
-        
-        # Create line collection
+        # Plot the track with colored segments
         x = telemetry1['X'].to_numpy()
         y = telemetry1['Y'].to_numpy()
         points = np.array([x, y]).T.reshape(-1, 1, 2)
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
         
-        cmap = cm.get_cmap("coolwarm", 2)  # Improved color map
-        norm = mcolors.Normalize(1, 2)
-        lc = mc.LineCollection(segments, cmap=cmap, norm=norm)
+        # Convert drivers to integers for coloring
+        telemetry1['Fastest_Int'] = telemetry1['Fastest'].map({driver1: 1, driver2: 2}).fillna(0)
+        fastest_driver_array = telemetry1['Fastest_Int'].to_numpy().astype(float)
+        
+        # Create line collection
+        driver_colors = {driver1: "#1f77b4", driver2: "#ff7f0e"}  # Example colors
+        cmap = mcolors.ListedColormap([driver_colors[driver1], driver_colors[driver2]])
+        lc = LineCollection(segments, cmap=cmap, norm=plt.Normalize(1, 2))
         lc.set_array(fastest_driver_array)
-        lc.set_linewidth(0.5)
+        lc.set_linewidth(2)
         
         # Plot
-        fig, ax = plt.subplots(figsize=(8, 4))
+        fig, ax = plt.subplots(figsize=(10, 5))
         ax.add_collection(lc)
         ax.autoscale()
         ax.set_aspect('equal', 'box')
         ax.axis('off')
-
-        # Minimalistic Legend (Instead of Thick Colorbar)
-        for driver, color in driver_colors.items():
-            ax.plot([], [], color=color, linewidth=3, label=f"— {driver.upper()}")  # Small line legend
         
-        ax.legend(loc="upper right", frameon=False, handlelength=2, handletextpad=0.6, fontsize=10)
-
+        # Custom legend with small horizontal lines
+        legend_elements = [
+            mlines.Line2D([0, 1], [0, 0], color=driver_colors[driver1], lw=3, label=f'— {driver1}'),
+            mlines.Line2D([0, 1], [0, 0], color=driver_colors[driver2], lw=3, label=f'— {driver2}')
+        ]
+        ax.legend(handles=legend_elements, loc='upper right', frameon=False, fontsize=10)
+        
         # Title
         ax.set_title(f"{event_name}: {driver1} vs {driver2} Track Dominance", fontsize=16)
         

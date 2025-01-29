@@ -551,7 +551,7 @@ async def get_track_dominance_base64(
 
         # Generate the plot
         base64_img = plot_track_dominance_to_base64(
-            telemetry_drivers, driver1, driver2, gp
+            telemetry_drivers, driver1, driver2, session.event["EventName"]
         )
         if base64_img:
             return JSONResponse(content={"image_base64": base64_img})

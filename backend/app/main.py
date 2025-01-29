@@ -509,8 +509,8 @@ async def get_track_dominance_base64(
         compare_drivers = session.laps[session.laps['Driver'].isin(drivers)]
 
         # Get fastest laps
-        fastest_lap_driver1 = compare_drivers.pick_driver(driver1).pick_fastest()
-        fastest_lap_driver2 = compare_drivers.pick_driver(driver2).pick_fastest()
+        fastest_lap_driver1 = compare_drivers.pick_drivers(driver1).pick_fastest()
+        fastest_lap_driver2 = compare_drivers.pick_drivers(driver2).pick_fastest()
 
         if fastest_lap_driver1.empty or fastest_lap_driver2.empty:
             return JSONResponse(content={"error": "Fastest laps unavailable for one or both drivers"})

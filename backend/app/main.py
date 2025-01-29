@@ -554,72 +554,72 @@ async def get_track_dominance_base64(
         return JSONResponse(content={"error": f"An error occurred: {str(e)}"})
 
 
-def plot_track_dominance_to_base64(telemetry1, telemetry2, driver1, driver2, event_name):
+@app.get("/track-dominance")
+async def get_track_dominance_base64(
+    year: int, 
+    gp: str, 
+    identifier: str, 
+    driver1: str, 
+    driver2: str
+):
     try:
-        # Divide track into minisectors
+        # Load session data
+        session = fastf1.get_session(year, gp, identifier)
+        session.load(laps=True, telemetry=True, weather=False, messages=False, livedata=None)
+
+        drivers = [driver1, driver2]
+        compare_drivers = session.laps[session.laps['Driver'].isin(drivers)]
+
+        # Get fastest laps
+        fastest_lap_driver1 = compare_drivers.pick_driver(driver1).pick_fastest()
+        fastest_lap_driver2 = compare_drivers.pick_driver(driver2).pick_fastest()
+
+        if fastest_lap_driver1.empty or fastest_lap_driver2.empty:
+            return JSONResponse(content={"error": "Fastest laps unavailable for one or both drivers"})
+
+        # Retrieve telemetry and add distance column
+        telemetry_driver1 = fastest_lap_driver1.get_telemetry().add_distance()
+        telemetry_driver2 = fastest_lap_driver2.get_telemetry().add_distance()
+
+        telemetry_driver1['Driver'] = driver1
+        telemetry_driver2['Driver'] = driver2
+        telemetry_drivers = pd.concat([telemetry_driver1, telemetry_driver2], ignore_index=True)
+
+        # Ensure Distance column exists
+        if 'Distance' not in telemetry_drivers.columns:
+            return JSONResponse(content={"error": "Distance data unavailable"})
+
+        # Define number of minisectors
         num_minisectors = 21
-        total_distance = max(telemetry1['Distance'].max(), telemetry2['Distance'].max())
+        total_distance = telemetry_drivers['Distance'].max()
         minisector_length = total_distance / num_minisectors
 
-        telemetry1['Minisector'] = (telemetry1['Distance'] // minisector_length).astype(int)
-        telemetry2['Minisector'] = (telemetry2['Distance'] // minisector_length).astype(int)
+        # Assign each telemetry point to a minisector
+        telemetry_drivers['Minisector'] = (telemetry_drivers['Distance'] // minisector_length).astype(int)
 
-        # Average speed per minisector
-        avg_speed1 = telemetry1.groupby('Minisector')['Speed'].mean()
-        avg_speed2 = telemetry2.groupby('Minisector')['Speed'].mean()
+        # Compute average speed per minisector for each driver
+        avg_speed = telemetry_drivers.groupby(['Minisector', 'Driver'])['Speed'].mean().reset_index()
 
-        # Ensure both indices align
-        common_index = avg_speed1.index.union(avg_speed2.index)
-        avg_speed1 = avg_speed1.reindex(common_index, fill_value=np.nan)
-        avg_speed2 = avg_speed2.reindex(common_index, fill_value=np.nan)
+        # Identify fastest driver per minisector
+        fastest_driver = avg_speed.loc[avg_speed.groupby('Minisector')['Speed'].idxmax()]
+        fastest_driver = fastest_driver[['Minisector', 'Driver']].rename(columns={'Driver': 'Fastest_driver'})
 
-        # Determine the fastest driver per minisector
-        fastest_driver = np.where(avg_speed1 > avg_speed2, driver1, driver2)
-        minisector_data = pd.DataFrame({'Fastest': fastest_driver}, index=common_index)
+        # Merge fastest driver per minisector back to telemetry data
+        telemetry_drivers = telemetry_drivers.merge(fastest_driver, on=['Minisector'])
 
-        telemetry1 = telemetry1.merge(minisector_data, how='left', left_on='Minisector', right_index=True)
+        # Ensure X and Y exist before plotting
+        if 'X' not in telemetry_drivers.columns or 'Y' not in telemetry_drivers.columns:
+            return JSONResponse(content={"error": "Missing positional data"})
 
-        # Plot the track
-        x = telemetry1['X'].to_numpy()
-        y = telemetry1['Y'].to_numpy()
-        points = np.array([x, y]).T.reshape(-1, 1, 2)
-        segments = np.concatenate([points[:-1], points[1:]], axis=1)
-
-        telemetry1['Fastest_Int'] = telemetry1['Fastest'].map({driver1: 1, driver2: 2}).fillna(0)
-        fastest_driver_array = telemetry1['Fastest_Int'].to_numpy().astype(float)
-
-        # Define colors
-        driver_colors = {driver1: "#1f77b4", driver2: "#ff7f0e"}
-        cmap = plt.get_cmap("spring")  # Alternatively, use 'RdBu', 'spring', etc.
-        lc = LineCollection(segments, cmap=cmap, norm=plt.Normalize(1, 2))
-        lc.set_array(fastest_driver_array)
-        lc.set_linewidth(2)
-
-        # Plot the track
-        fig, ax = plt.subplots(figsize=(10, 5))
-        ax.add_collection(lc)
-        ax.autoscale()
-        ax.set_aspect('equal', 'box')
-        ax.axis('off')
-
-        # Custom legend
-        legend_elements = [
-            mlines.Line2D([0, 1], [0, 0], color=driver_colors[driver1], lw=3, label=f'— {driver1}'),
-            mlines.Line2D([0, 1], [0, 0], color=driver_colors[driver2], lw=3, label=f'— {driver2}')
-        ]
-        ax.legend(handles=legend_elements, loc='upper right', frameon=False, fontsize=10)
-
-        # Title
-        ax.set_title(f"{event_name}: {driver1} vs {driver2} Track Dominance", fontsize=16)
-
-        # Save plot as base64
-        img_stream = io.BytesIO()
-        plt.savefig(img_stream, format='png', dpi=300, bbox_inches='tight')
-        plt.close(fig)
-        img_stream.seek(0)
-        base64_img = base64.b64encode(img_stream.getvalue()).decode('utf-8')
-        return base64_img
+        # Generate the plot
+        base64_img = plot_track_dominance_to_base64(
+            telemetry_drivers, driver1, driver2, session.event["EventName"]
+        )
+        if base64_img:
+            return JSONResponse(content={"image_base64": base64_img})
+        else:
+            return JSONResponse(content={"error": "Failed to generate track dominance plot"})
 
     except Exception as e:
-        print(f"Error while plotting track dominance: {e}")
-        return None
+        print(f"Error: {e}")
+        return JSONResponse(content={"error": f"An error occurred: {str(e)}"})

@@ -588,10 +588,10 @@ def plot_track_dominance_to_base64(telemetry1, telemetry2, driver1, driver2, eve
         cmap = plt.get_cmap('cool', 2)
         lc = LineCollection(segments, cmap=cmap, norm=plt.Normalize(1, 2))
         lc.set_array(fastest_driver_array)
-        lc.set_linewidth(1)
+        lc.set_linewidth(2)
         
         # Plot
-        fig, ax = plt.subplots(figsize=(3, 1.5))
+        fig, ax = plt.subplots(figsize=(10, 5))
         ax.add_collection(lc)
         ax.autoscale()
         ax.set_aspect('equal', 'box')

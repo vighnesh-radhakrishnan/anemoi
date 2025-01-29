@@ -506,8 +506,8 @@ async def get_track_dominance_base64(
         session.load(laps=True, telemetry=True, weather=False, messages=False, livedata=None)
 
         # Get fastest laps for both drivers
-        fastest_lap_driver1 = session.laps.pick_driver(driver1).pick_fastest()
-        fastest_lap_driver2 = session.laps.pick_driver(driver2).pick_fastest()
+        fastest_lap_driver1 = session.laps.pick_drivers(driver1).pick_fastest()
+        fastest_lap_driver2 = session.laps.pick_drivers(driver2).pick_fastest()
 
         if fastest_lap_driver1.empty or fastest_lap_driver2.empty:
             return JSONResponse(content={"error": "Fastest laps unavailable for one or both drivers"})
@@ -573,7 +573,7 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
         fig, ax = plt.subplots()
 
         # Define colors for each driver
-        driver_colors = {driver1: "#1f77b4", driver2: "#ff7f0e"}  # You can customize these colors
+        driver_colors = {driver1: "#1f77b4", driver2: "#ff7f0e"}
         
         # Create line collection with custom coloring
         cmap = plt.get_cmap('spring', 2)
@@ -583,10 +583,16 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
 
         # Add the line collection to the plot
         ax.add_collection(lc_comp)
+
+        # Set proper axis limits
+        ax.set_xlim(x.min() - 100, x.max() + 100)  # Add padding
+        ax.set_ylim(y.min() - 100, y.max() + 100)  # Add padding
+        
+        # Set aspect ratio and turn off axis
         ax.set_aspect('equal')
         ax.axis('off')
 
-        # Add custom legend instead of colorbar
+        # Add custom legend
         legend_elements = [
             mlines.Line2D([0], [0], color=driver_colors[driver1], lw=2, label=driver1),
             mlines.Line2D([0], [0], color=driver_colors[driver2], lw=2, label=driver2)
@@ -600,7 +606,7 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
         # Convert to base64
         img_stream = io.BytesIO()
         plt.savefig(img_stream, format='png', dpi=300, bbox_inches='tight', 
-                   facecolor='none', edgecolor='none')
+                   facecolor='none', edgecolor='none', transparent=True)
         plt.close()
         
         img_stream.seek(0)

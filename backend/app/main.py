@@ -503,7 +503,7 @@ async def get_track_dominance_base64(
     try:
         # Load the session data and telemetry
         session = fastf1.get_session(year, gp, identifier)
-        session.load(laps=True, telemetry=False, weather=False, messages=False, livedata=None)
+        session.load(laps=True, telemetry=True, weather=False, messages=False, livedata=None)
         
         # Get the fastest laps for both drivers
         lap_driver1 = session.laps.pick_drivers(driver1).pick_fastest()

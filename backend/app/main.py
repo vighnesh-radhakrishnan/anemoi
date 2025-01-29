@@ -582,7 +582,7 @@ def plot_track_dominance_to_base64(telemetry1, telemetry2, driver1, driver2, eve
 
         # Define colors
         driver_colors = {driver1: "#1f77b4", driver2: "#ff7f0e"}
-        cmap = mcolors.ListedColormap([driver_colors[driver1], driver_colors[driver2]])
+        cmap = cm.spring  # Alternatively, use a colormap like 'RdBu', 'spring', etc.
         lc = LineCollection(segments, cmap=cmap, norm=plt.Normalize(1, 2))
         lc.set_array(fastest_driver_array)
         lc.set_linewidth(2)

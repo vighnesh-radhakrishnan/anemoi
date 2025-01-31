@@ -239,7 +239,7 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
                    facecolor='none',
                    edgecolor='none',
                    transparent=True,
-                   pad_inches=0.3)
+                   pad_inches=0.1)
         plt.close()
 
         img_stream.seek(0)
@@ -680,7 +680,7 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
                    facecolor='none',    # White background
                    edgecolor='none',
                    transparent=True,  # Non-transparent background
-                   pad_inches=0.5)       # Add padding around the plot
+                   pad_inches=0.1)       # Add padding around the plot
         plt.close()
         
         img_stream.seek(0)

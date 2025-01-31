@@ -205,7 +205,7 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
         ax.add_collection(lc)
 
         # Set proper axis limits with adjusted padding
-        padding = (max(x.max() - x.min(), y.max() - y.min()) * 0.1)
+        padding = (max(x.max() - x.min(), y.max() - y.min()) * 0.05)
         ax.set_xlim(x.min() - padding, x.max() + padding)
         ax.set_ylim(y.min() - padding, y.max() + padding)
 
@@ -230,12 +230,6 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
                  title_fontsize=10,
                  fontsize=8)
 
-        # Add title
-        plt.title(f"{event_name} | {identifier}\n{driver}'s Fastest Lap",
-                 color='black',
-                 fontsize=12,
-                 pad=20)
-
         # Save figure with same settings as track dominance
         img_stream = io.BytesIO()
         plt.savefig(img_stream,
@@ -245,7 +239,7 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
                    facecolor='none',
                    edgecolor='none',
                    transparent=True,
-                   pad_inches=0.3)
+                   pad_inches=0.1)
         plt.close()
 
         img_stream.seek(0)
@@ -656,7 +650,7 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
         ax.add_collection(lc_comp)
         
         # Set proper axis limits with adjusted padding
-        padding = (max(x.max() - x.min(), y.max() - y.min()) * 0.1)  # 10% padding
+        padding = (max(x.max() - x.min(), y.max() - y.min()) * 0.05)
         ax.set_xlim(x.min() - padding, x.max() + padding)
         ax.set_ylim(y.min() - padding, y.max() + padding)
         
@@ -686,7 +680,7 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
                    facecolor='none',    # White background
                    edgecolor='none',
                    transparent=True,  # Non-transparent background
-                   pad_inches=0.5)       # Add padding around the plot
+                   pad_inches=0.1)       # Add padding around the plot
         plt.close()
         
         img_stream.seek(0)

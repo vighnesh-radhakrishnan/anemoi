@@ -601,7 +601,7 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
         custom_cmap = ListedColormap([driver_colors[driver1], driver_colors[driver2]])
         
         # Create the plot with adjusted figure size
-        plt.rcParams['figure.figsize'] = [8, 8]  # Make figure more compact and square
+        plt.rcParams['figure.figsize'] = [6, 6]  # Make figure more compact and square
         fig, ax = plt.subplots()
         
         # Create line collection with custom coloring
@@ -638,7 +638,7 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
         img_stream = io.BytesIO()
         plt.savefig(img_stream, 
                    format='png', 
-                   dpi=300, 
+                   dpi=400, 
                    bbox_inches='tight',  # Tight layout
                    facecolor='none',    # White background
                    edgecolor='none',

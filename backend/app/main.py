@@ -11,6 +11,8 @@ from matplotlib.collections import LineCollection
 import matplotlib.lines as mlines
 import requests
 from matplotlib.colors import ListedColormap
+from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.lines import Line2D
 
 app = FastAPI()
 

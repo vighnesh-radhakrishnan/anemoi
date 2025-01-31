@@ -107,27 +107,27 @@ const FastestLap = () => {
         <div>
           <SessionDetails>
             <div>
-              <strong>Grand Prix:</strong>
+              <strong>Grand Prix</strong>
               <span>{fastestLapData.session.GrandPrix}</span>
             </div>
             <div>
-              <strong>Year:</strong>
+              <strong>Year</strong>
               <span>{fastestLapData.session.Year}</span>
             </div>
             <div>
-              <strong>Session:</strong>
+              <strong>Session</strong>
               <span>{fastestLapData.session.Session}</span>
             </div>
             <div>
-              <strong>Driver:</strong>
+              <strong>Driver</strong>
               <span>{fastestLapData.session.Driver}</span>
             </div>
             <div>
-              <strong>Event:</strong>
+              <strong>Event</strong>
               <span>{fastestLapData.session.Event}</span>
             </div>
             <div>
-              <strong>Location:</strong>
+              <strong>Location</strong>
               <span>{fastestLapData.session.Location}</span>
             </div>
           </SessionDetails>

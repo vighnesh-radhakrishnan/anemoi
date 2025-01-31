@@ -240,7 +240,7 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
         img_stream = io.BytesIO()
         plt.savefig(img_stream,
                    format='png',
-                   dpi=400,
+                   dpi=300,
                    bbox_inches='tight',
                    facecolor='none',
                    edgecolor='none',
@@ -681,7 +681,7 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
         img_stream = io.BytesIO()
         plt.savefig(img_stream, 
                    format='png', 
-                   dpi=400, 
+                   dpi=300, 
                    bbox_inches='tight',  # Tight layout
                    facecolor='none',    # White background
                    edgecolor='none',

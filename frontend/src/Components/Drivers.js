@@ -162,9 +162,9 @@ const Drivers = () => {
                         {driver.givenName} {driver.familyName}
                       </a>
                     </td>
-                    <td>{driver.code || "N/A"}</td>
-                    <td>{driver.dateOfBirth || "N/A"}</td>
-                    <td>{driver.nationality || "N/A"}</td>
+                    <td>{driver.code || ""}</td>
+                    <td>{driver.dateOfBirth || ""}</td>
+                    <td>{driver.nationality || ""}</td>
                   </tr>
                 ))}
               </tbody>

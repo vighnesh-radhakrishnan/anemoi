@@ -178,32 +178,74 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
         if len(x) == 0 or len(y) == 0 or len(speed) == 0:
             raise ValueError("No valid telemetry data available for plotting.")
 
+        # Create figure with same size as track dominance
+        plt.rcParams['figure.figsize'] = [6, 6]
+        fig, ax = plt.subplots(facecolor='none')
+        ax.set_facecolor('none')
+
+        # Define speed ranges for legend
+        speed_min = speed.min()
+        speed_max = speed.max()
+        speed_range = speed_max - speed_min
+        
+        # Create custom colormap for speed
+        colors = ["#1f77b4", "#ff7f0e", "#2ca02c"]  # Blue to Orange to Green
+        custom_cmap = LinearSegmentedColormap.from_list("custom", colors)
+
         # Normalize speed for color mapping
-        norm = plt.Normalize(speed.min(), speed.max())
+        norm = plt.Normalize(speed_min, speed_max)
         points = np.array([x, y]).T.reshape(-1, 1, 2)
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
 
-        # Create the plot with a smaller figure size
-        fig, ax = plt.subplots(figsize=(3, 1.5))  # Reduce the circuit plot size (3x1.5)
-        cmap = plt.get_cmap("viridis")
-        
-        # Reduce the line width here
-        lc = LineCollection(segments, cmap=cmap, norm=norm, linewidth=1)  # Set linewidth to 1 (smaller)
+        # Create line collection with custom coloring
+        lc = LineCollection(segments, cmap=custom_cmap, norm=norm, linewidth=3)
         lc.set_array(speed)
         ax.add_collection(lc)
-        ax.autoscale()
-        ax.axis("off")
 
-        # Adjust the color bar size
-        cbar = plt.colorbar(lc, ax=ax, fraction=0.025, pad=0.03)  # Even smaller fraction and padding
-        cbar.set_label("Speed (km/h)", fontsize=6)  # Smaller font size for the label
-        cbar.ax.tick_params(labelsize=5)  # Further reduce tick label size
-        cbar.ax.set_ylim([speed.min(), speed.max()])  # Ensure the color bar range matches the data
+        # Set proper axis limits with adjusted padding
+        padding = (max(x.max() - x.min(), y.max() - y.min()) * 0.1)
+        ax.set_xlim(x.min() - padding, x.max() + padding)
+        ax.set_ylim(y.min() - padding, y.max() + padding)
 
-        # Save the plot to a BytesIO object and encode to Base64
+        # Set aspect ratio and turn off axis
+        ax.set_aspect('equal')
+        ax.axis('off')
+
+        # Create custom legend with speed ranges
+        speed_levels = [speed_min, (speed_min + speed_max)/2, speed_max]
+        legend_elements = [
+            Line2D([0], [0], color=custom_cmap(norm(speed)), 
+                  lw=2, label=f'{int(speed)} km/h')
+            for speed in speed_levels
+        ]
+
+        # Place legend outside the plot on the right
+        ax.legend(handles=legend_elements,
+                 loc='center left',
+                 bbox_to_anchor=(1.05, 0.5),
+                 frameon=False,
+                 title='Speed',
+                 title_fontsize=10,
+                 fontsize=8)
+
+        # Add title
+        plt.title(f"{event_name} | {identifier}\n{driver}'s Fastest Lap",
+                 color='black',
+                 fontsize=12,
+                 pad=20)
+
+        # Save figure with same settings as track dominance
         img_stream = io.BytesIO()
-        plt.savefig(img_stream, format="png", dpi=300, bbox_inches="tight")  # Reduced DPI (300)
-        plt.close(fig)
+        plt.savefig(img_stream,
+                   format='png',
+                   dpi=400,
+                   bbox_inches='tight',
+                   facecolor='none',
+                   edgecolor='none',
+                   transparent=True,
+                   pad_inches=0.3)
+        plt.close()
+
         img_stream.seek(0)
         base64_img = base64.b64encode(img_stream.getvalue()).decode('utf-8')
         return base64_img
@@ -211,7 +253,6 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
     except Exception as e:
         print(f"Error while plotting: {e}")
         return None
-
 
 @app.get("/circuits")
 async def get_circuits(

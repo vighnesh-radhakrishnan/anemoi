@@ -181,7 +181,7 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
             raise ValueError("No valid telemetry data available for plotting.")
 
         # Create figure with same size as track dominance
-        plt.rcParams['figure.figsize'] = [4, 4]
+        plt.rcParams['figure.figsize'] = [6, 6]
         fig, ax = plt.subplots(facecolor='none')
         ax.set_facecolor('none')
 
@@ -227,8 +227,8 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
                  bbox_to_anchor=(1.05, 0.5),
                  frameon=False,
                  title='Speed',
-                 title_fontsize=10,
-                 fontsize=8)
+                 title_fontsize=8,
+                 fontsize=6)
 
         # Save figure with same settings as track dominance
         img_stream = io.BytesIO()
@@ -638,7 +638,7 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
         custom_cmap = ListedColormap([driver_colors[driver1], driver_colors[driver2]])
         
         # Create the plot with adjusted figure size
-        plt.rcParams['figure.figsize'] = [4, 4]  # Make figure more compact and square
+        plt.rcParams['figure.figsize'] = [6, 6]  # Make figure more compact and square
         fig, ax = plt.subplots()
         
         # Create line collection with custom coloring

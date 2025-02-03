@@ -11,6 +11,7 @@ import {
   Heading,
 } from "./Container";
 import LoadingGif from "../Icons/loading.gif";
+import Footer from "./Footer";
 
 const Calendar = () => {
   const [selectedYear, setSelectedYear] = useState("");
@@ -94,6 +95,7 @@ const Calendar = () => {
           </StyledTable>
         </TableWrapper>
       )}
+      <Footer />
     </PageWrapper>
   );
 };

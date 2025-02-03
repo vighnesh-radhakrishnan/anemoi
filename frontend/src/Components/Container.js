@@ -232,3 +232,24 @@ export const Heading = styled.h1`
   font-size: 2rem;
   color: #333;
 `;
+
+export const FooterWrapper = styled.footer`
+  width: 100%;
+  padding: 20px;
+  background-color: #f4f4f4;
+  color: #333;
+  text-align: center;
+  font-size: 0.9rem;
+  border-top: 2px solid #e10600;
+
+  a {
+    text-decoration: none;
+    color: #e10600;
+    font-weight: bold;
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: #b00400;
+    }
+  }
+`;

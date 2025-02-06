@@ -235,12 +235,16 @@ export const Heading = styled.h1`
 
 export const FooterWrapper = styled.footer`
   width: 100%;
-  padding: 20px;
-  background-color: #f4f4f4;
-  color: #333;
+  padding: 5px;
+  background-color: rgb(244, 244, 244);
+  color: rgb(51, 51, 51);
   text-align: center;
   font-size: 0.9rem;
-  border-top: 2px solid #e10600;
+  border-top: 2px solid rgb(225, 6, 0);
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  left: 0;
 
   a {
     text-decoration: none;

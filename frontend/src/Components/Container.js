@@ -235,7 +235,7 @@ export const Heading = styled.h1`
 
 export const FooterWrapper = styled.footer`
   width: 100%;
-  padding: 5px;
+  padding: 2px;
   background-color: rgb(244, 244, 244);
   color: rgb(51, 51, 51);
   text-align: center;

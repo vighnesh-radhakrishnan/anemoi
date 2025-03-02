@@ -1,5 +1,4 @@
 import React from "react";
-import styled from "styled-components";
 
 const RaceDataForm = ({
   selectedYear,
@@ -12,9 +11,6 @@ const RaceDataForm = ({
   setDriver1,
   driver2,
   setDriver2,
-  stint,
-  setStint,
-  showStint = false,
   handleSubmit,
 }) => {
   const handleYearChange = (event) => setSelectedYear(event.target.value);
@@ -24,17 +20,20 @@ const RaceDataForm = ({
   const handleDriver1Change = (event) => setDriver1(event.target.value);
   const handleDriver2Change = (event) => setDriver2(event.target.value);
 
-  // Create a wrapper function to prevent default behavior
   const onSubmit = (e) => {
     e.preventDefault();
     handleSubmit(e);
   };
 
   return (
-    <div
-      className="race-data"
+    <form
       onSubmit={onSubmit}
-      style={{ display: "flex", gap: "15px" }}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "15px",
+        width: "100%",
+      }}
     >
       <input
         type="number"
@@ -72,7 +71,7 @@ const RaceDataForm = ({
         required
       />
       <button type="submit">Get Plot</button>
-    </div>
+    </form>
   );
 };
 

@@ -31,7 +31,11 @@ const RaceDataForm = ({
   };
 
   return (
-    <div className="race-data" onSubmit={onSubmit}>
+    <div
+      className="race-data"
+      onSubmit={onSubmit}
+      style={{ display: "flex", gap: "15px" }}
+    >
       <input
         type="number"
         placeholder="Enter Year"

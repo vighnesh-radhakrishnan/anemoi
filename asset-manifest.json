@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/anemoi/static/css/main.93a0497a.css",
-    "main.js": "/anemoi/static/js/main.79e74e19.js",
+    "main.js": "/anemoi/static/js/main.d6f54268.js",
     "static/media/loading.gif": "/anemoi/static/media/loading.c2277c882c5ae3691da9.gif",
     "static/media/avatar.svg": "/anemoi/static/media/avatar.acf477969caaa369bb1969d1c6f20927.svg",
     "index.html": "/anemoi/index.html",
     "main.93a0497a.css.map": "/anemoi/static/css/main.93a0497a.css.map",
-    "main.79e74e19.js.map": "/anemoi/static/js/main.79e74e19.js.map"
+    "main.d6f54268.js.map": "/anemoi/static/js/main.d6f54268.js.map"
   },
   "entrypoints": [
     "static/css/main.93a0497a.css",
-    "static/js/main.79e74e19.js"
+    "static/js/main.d6f54268.js"
   ]
 }

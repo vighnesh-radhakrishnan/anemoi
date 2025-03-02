@@ -23,7 +23,6 @@ const RaceDataForm = ({
     setSessionIdentifier(event.target.value);
   const handleDriver1Change = (event) => setDriver1(event.target.value);
   const handleDriver2Change = (event) => setDriver2(event.target.value);
-  const handleStintChange = (event) => setStint(event.target.value);
 
   // Create a wrapper function to prevent default behavior
   const onSubmit = (e) => {
@@ -32,7 +31,7 @@ const RaceDataForm = ({
   };
 
   return (
-    <div className="race-data">
+    <div className="race-data" onSubmit={onSubmit}>
       <input
         type="number"
         placeholder="Enter Year"

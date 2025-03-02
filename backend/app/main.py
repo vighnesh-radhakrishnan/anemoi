@@ -862,23 +862,37 @@ def plot_driver_comparison_to_base64(
         fig, ax = plt.subplots(5, sharex=False)
         fig.suptitle(f"{driver1} vs {driver2} comparison - {event_name}")
         
+        # Check for LapTime data type and convert if needed
+        if 'LapTime' in laps_driver1.columns and not pd.api.types.is_numeric_dtype(laps_driver1['LapTime']):
+            # Convert timedelta to seconds
+            laps_driver1['LapTime_sec'] = laps_driver1['LapTime'].dt.total_seconds()
+            laps_driver2['LapTime_sec'] = laps_driver2['LapTime'].dt.total_seconds()
+            laptime_col = 'LapTime_sec'
+        else:
+            laptime_col = 'LapTime'
+        
         # Panel 1: Lap times comparison
-        ax[0].plot(laps_driver1['RaceLapNumber'], laps_driver1['LapTime'], label=driver1, color='purple')
-        ax[0].plot(laps_driver2['RaceLapNumber'], laps_driver2['LapTime'], label=driver2, color='green')
-        ax[0].set(ylabel='Laptime')
+        ax[0].plot(laps_driver1['RaceLapNumber'], laps_driver1[laptime_col], label=driver1, color='purple')
+        ax[0].plot(laps_driver2['RaceLapNumber'], laps_driver2[laptime_col], label=driver2, color='green')
+        ax[0].set(ylabel='Laptime (s)')
         ax[0].legend(loc="upper center")
         
         # Add circles to highlight specific areas of interest
-        if closest_lap > 2 and closest_lap < max(laps_driver1['RaceLapNumber'].max(), laps_driver2['RaceLapNumber'].max()) - 2:
-            # Add a circle to highlight the closest battle area
-            x_center = closest_lap
-            y_center = np.mean([
-                laps_driver1.loc[laps_driver1['RaceLapNumber']==closest_lap, 'LapTime'].iloc[0],
-                laps_driver2.loc[laps_driver2['RaceLapNumber']==closest_lap, 'LapTime'].iloc[0]
-            ])
-            radius = 0.5
-            circle = plt.Circle((x_center, y_center), radius, fill=False, edgecolor='white', linewidth=2)
-            ax[0].add_patch(circle)
+        try:
+            if closest_lap > 2 and closest_lap < max(laps_driver1['RaceLapNumber'].max(), laps_driver2['RaceLapNumber'].max()) - 2:
+                # Find lap times for the closest lap
+                d1_laptime = laps_driver1.loc[laps_driver1['RaceLapNumber'] == closest_lap, laptime_col]
+                d2_laptime = laps_driver2.loc[laps_driver2['RaceLapNumber'] == closest_lap, laptime_col]
+                
+                if not d1_laptime.empty and not d2_laptime.empty:
+                    # Add a circle to highlight the closest battle area
+                    x_center = closest_lap
+                    y_center = np.mean([d1_laptime.iloc[0], d2_laptime.iloc[0]])
+                    radius = 0.5
+                    circle = plt.Circle((x_center, y_center), radius, fill=False, edgecolor='white', linewidth=2)
+                    ax[0].add_patch(circle)
+        except Exception as e:
+            print(f"Error adding lap time highlight: {e}")
         
         # Panel 2: Distance between drivers
         ax[1].plot(summarized_distance['Lap'], summarized_distance['Mean'], label='Mean', color='red')
@@ -887,13 +901,20 @@ def plot_driver_comparison_to_base64(
         ax[1].legend(loc="upper center")
         
         # Add circle to highlight distance in interesting laps
-        if closest_lap > 2 and closest_lap < summarized_distance['Lap'].max() - 2:
-            # Add a circle to highlight the closest distance
-            x_center = closest_lap
-            y_center = summarized_distance.loc[summarized_distance['Lap']==closest_lap, 'Median'].iloc[0]
-            radius = 0.5
-            circle = plt.Circle((x_center, y_center), radius, fill=False, edgecolor='white', linewidth=2)
-            ax[1].add_patch(circle)
+        try:
+            if closest_lap > 2 and closest_lap < summarized_distance['Lap'].max() - 2:
+                # Find the median distance for the closest lap
+                closest_median = summarized_distance.loc[summarized_distance['Lap'] == closest_lap, 'Median']
+                
+                if not closest_median.empty:
+                    # Add a circle to highlight the closest distance
+                    x_center = closest_lap
+                    y_center = closest_median.iloc[0]
+                    radius = 0.5
+                    circle = plt.Circle((x_center, y_center), radius, fill=False, edgecolor='white', linewidth=2)
+                    ax[1].add_patch(circle)
+        except Exception as e:
+            print(f"Error adding distance highlight: {e}")
         
         # Panel 3: Distance to driver ahead across laps
         ax[2].set_title(f"Distance to {driver1} (m)")
@@ -922,29 +943,52 @@ def plot_driver_comparison_to_base64(
                 )
         
         ax[2].legend(loc="lower right")
-        ax[2].set(ylabel='Distance to driver1')
+        ax[2].set(ylabel=f'Distance to {driver1}')
         
-        # Panel 4: Speed comparison for the closest lap
-        ax[3].set_title(f"Lap {closest_lap} telemetry")
-        ax[3].plot(lap_telemetry_driver1['Distance'], lap_telemetry_driver1['Speed'], label=driver1, color='purple')
-        ax[3].plot(lap_telemetry_driver2['Distance'], lap_telemetry_driver2['Speed'], label=driver2, color='green')
-        ax[3].set(ylabel='Speed')
-        ax[3].legend(loc="lower right")
+        # Check if required columns exist
+        required_columns = ['Distance', 'Speed', 'Throttle']
+        d1_cols = all(col in lap_telemetry_driver1.columns for col in required_columns)
+        d2_cols = all(col in lap_telemetry_driver2.columns for col in required_columns)
         
-        # Panel 5: Throttle comparison
-        ax[4].plot(lap_telemetry_driver1['Distance'], lap_telemetry_driver1['Throttle'], label=driver1, color='purple')
-        ax[4].plot(lap_telemetry_driver2['Distance'], lap_telemetry_driver2['Throttle'], label=driver2, color='green')
-        ax[4].set(ylabel='Throttle', xlabel='Distance')
-        
-        # Highlight key differences in throttle application
-        for dist in range(0, int(lap_telemetry_driver1['Distance'].max()), int(lap_telemetry_driver1['Distance'].max() / 5)):
-            d1_throttle = lap_telemetry_driver1.loc[lap_telemetry_driver1['Distance'] > dist].iloc[0]['Throttle']
-            d2_throttle = lap_telemetry_driver2.loc[lap_telemetry_driver2['Distance'] > dist].iloc[0]['Throttle']
+        if not d1_cols or not d2_cols:
+            print("Missing required telemetry columns")
+            # Use simpler plots if data is missing
+            ax[3].text(0.5, 0.5, "Telemetry data incomplete", 
+                       horizontalalignment='center', verticalalignment='center')
+            ax[4].text(0.5, 0.5, "Telemetry data incomplete", 
+                       horizontalalignment='center', verticalalignment='center')
+        else:
+            # Panel 4: Speed comparison for the closest lap
+            ax[3].set_title(f"Lap {closest_lap} telemetry")
+            ax[3].plot(lap_telemetry_driver1['Distance'], lap_telemetry_driver1['Speed'], label=driver1, color='purple')
+            ax[3].plot(lap_telemetry_driver2['Distance'], lap_telemetry_driver2['Speed'], label=driver2, color='green')
+            ax[3].set(ylabel='Speed')
+            ax[3].legend(loc="lower right")
             
-            if abs(d1_throttle - d2_throttle) > 20:  # If throttle difference is significant
-                circle = plt.Circle((dist, min(d1_throttle, d2_throttle) + abs(d1_throttle - d2_throttle)/2), 
-                                   50, fill=False, edgecolor='white', linewidth=2)
-                ax[4].add_patch(circle)
+            # Panel 5: Throttle comparison
+            ax[4].plot(lap_telemetry_driver1['Distance'], lap_telemetry_driver1['Throttle'], label=driver1, color='purple')
+            ax[4].plot(lap_telemetry_driver2['Distance'], lap_telemetry_driver2['Throttle'], label=driver2, color='green')
+            ax[4].set(ylabel='Throttle', xlabel='Distance')
+            
+            # Highlight key differences in throttle application
+            try:
+                max_dist = min(lap_telemetry_driver1['Distance'].max(), lap_telemetry_driver2['Distance'].max())
+                for dist_pct in [0.1, 0.3, 0.5, 0.7, 0.9]:  # Check at various points along the lap
+                    dist = max_dist * dist_pct
+                    
+                    # Find closest points in each dataset
+                    d1_idx = (lap_telemetry_driver1['Distance'] - dist).abs().idxmin()
+                    d2_idx = (lap_telemetry_driver2['Distance'] - dist).abs().idxmin()
+                    
+                    d1_throttle = lap_telemetry_driver1.loc[d1_idx, 'Throttle']
+                    d2_throttle = lap_telemetry_driver2.loc[d2_idx, 'Throttle']
+                    
+                    if abs(d1_throttle - d2_throttle) > 20:  # If throttle difference is significant
+                        circle = plt.Circle((dist, min(d1_throttle, d2_throttle) + abs(d1_throttle - d2_throttle)/2), 
+                                          max_dist/20, fill=False, edgecolor='white', linewidth=2)
+                        ax[4].add_patch(circle)
+            except Exception as e:
+                print(f"Error highlighting throttle differences: {e}")
         
         # Hide x labels and tick labels for top plots and y ticks for right plots
         for a in ax.flat:
@@ -961,4 +1005,6 @@ def plot_driver_comparison_to_base64(
         
     except Exception as e:
         print(f"Error while plotting driver comparison: {e}")
+        import traceback
+        traceback.print_exc()
         return None

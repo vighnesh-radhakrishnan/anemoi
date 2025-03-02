@@ -7,6 +7,7 @@ import Standings from "./Components/Standings";
 import Constructors from "./Components/Constructors";
 import Drivers from "./Components/Drivers";
 import TrackDominance from "./Components/TrackDominance";
+import DriverComparison from "./Components/DriverComparison";
 import { PageWrapper, TabWrapper, Tab } from "./Components/Container";
 import Footer from "./Components/Footer";
 
@@ -53,6 +54,12 @@ function App() {
               Track Dominance
             </Tab>
             <Tab
+              active={activeTab === "drivercomparison"}
+              onClick={() => handleTabChange("drivercomparison")}
+            >
+              Driver Comparison
+            </Tab>
+            <Tab
               active={activeTab === "circuits"}
               onClick={() => handleTabChange("circuits")}
             >
@@ -77,6 +84,7 @@ function App() {
             {activeTab === "calendar" && <Calendar />}
             {activeTab === "fastestLap" && <FastestLap />}
             {activeTab === "trackdominance" && <TrackDominance />}
+            {activeTab === "drivercomparison" && <DriverComparison />}
             {activeTab === "circuits" && <Circuits />}
             {activeTab === "standings" && <Standings />}
             {activeTab === "constructors" && <Constructors />}

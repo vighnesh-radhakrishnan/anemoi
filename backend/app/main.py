@@ -694,10 +694,7 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
 @app.get("/driver-comparison")
 async def get_driver_comparison(year: int, gp: str, identifier: str, driver1: str, driver2: str, stint: int = 1):
     try:
-        # Enable cache to improve performance
-        fastf1.Cache.enable_cache('./cache')
-        
-        # Load the session data
+        # Load the session data without using cache
         session = fastf1.get_session(year, gp, identifier)
         session.load(laps=True, telemetry=True, weather=False, messages=False)
         

@@ -700,8 +700,8 @@ async def get_driver_comparison(year: int, gp: str, identifier: str, driver1: st
         session.load(laps=True, telemetry=True, weather=False, messages=False)
         
         # Get laps for both drivers
-        laps_driver1 = session.laps.pick_driver(driver1)
-        laps_driver2 = session.laps.pick_driver(driver2)
+        laps_driver1 = session.laps.pick_drivers(driver1)
+        laps_driver2 = session.laps.pick_drivers(driver2)
         
         # Filter by stint if provided
         if stint is not None:

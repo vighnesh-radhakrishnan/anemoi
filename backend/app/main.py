@@ -690,3 +690,251 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
     except Exception as e:
         print(f"Error while plotting track dominance: {e}")
         return None
+
+
+@app.get("/driver-comparison")
+async def get_driver_comparison(year: int, gp: str, identifier: str, driver1: str, driver2: str, stint: int = 1):
+    try:
+        # Load the session data
+        session = fastf1.get_session(year, gp, identifier)
+        session.load(laps=True, telemetry=True, weather=False, messages=False)
+        
+        # Get laps for both drivers
+        laps_driver1 = session.laps.pick_driver(driver1)
+        laps_driver2 = session.laps.pick_driver(driver2)
+        
+        # Filter by stint if provided
+        if stint is not None:
+            laps_driver1 = laps_driver1.loc[laps_driver1['Stint'] == stint]
+            laps_driver2 = laps_driver2.loc[laps_driver2['Stint'] == stint]
+        
+        # Check if we have enough data
+        if laps_driver1.empty or laps_driver2.empty:
+            return JSONResponse(content={"error": f"Not enough lap data for one or both drivers in stint {stint}"})
+        
+        # Create race lap number (subtracting 1 to account for formation lap)
+        laps_driver1['RaceLapNumber'] = laps_driver1['LapNumber'] - 1
+        laps_driver2['RaceLapNumber'] = laps_driver2['LapNumber'] - 1
+        
+        # Process distance data between drivers
+        # Determine which driver is ahead based on position
+        ahead_driver = driver1
+        behind_driver = driver2
+        ahead_laps = laps_driver1
+        behind_laps = laps_driver2
+        
+        # Try to determine who's ahead based on position
+        try:
+            driver1_pos = session.results.loc[session.results['Abbreviation'] == driver1, 'Position'].iloc[0]
+            driver2_pos = session.results.loc[session.results['Abbreviation'] == driver2, 'Position'].iloc[0]
+            
+            if driver2_pos < driver1_pos:  # Lower position number is better
+                ahead_driver = driver2
+                behind_driver = driver1
+                ahead_laps = laps_driver2
+                behind_laps = laps_driver1
+        except:
+            # If can't determine from results, use lap times
+            d1_median_time = laps_driver1['LapTime'].median()
+            d2_median_time = laps_driver2['LapTime'].median()
+            
+            if d2_median_time < d1_median_time:
+                ahead_driver = driver2
+                behind_driver = driver1
+                ahead_laps = laps_driver2
+                behind_laps = laps_driver1
+        
+        # Process distance data
+        full_distance_data = pd.DataFrame()
+        summarized_distance_data = pd.DataFrame()
+        
+        for lap in behind_laps.iterlaps():
+            telemetry = lap[1].get_car_data().add_distance().add_driver_ahead()
+            
+            # Filter to only include data where driver ahead is our ahead_driver
+            driver_id = session.get_driver(ahead_driver)['DriverNumber']
+            telemetry = telemetry.loc[telemetry['DriverAhead'] == driver_id]
+            
+            if len(telemetry) > 0:
+                # Full distance data
+                lap_telemetry = telemetry[['Distance', 'DistanceToDriverAhead']]
+                lap_telemetry.loc[:, 'Lap'] = lap[0] + 1  # RaceLapNumber
+                full_distance_data = pd.concat([full_distance_data, lap_telemetry])
+                
+                # Summarized distance data
+                distance_mean = np.nanmean(telemetry['DistanceToDriverAhead'])
+                distance_median = np.nanmedian(telemetry['DistanceToDriverAhead'])
+                new_row = pd.DataFrame({
+                    'Lap': [lap[0] + 1],
+                    'Mean': [distance_mean],
+                    'Median': [distance_median]
+                })
+                summarized_distance_data = pd.concat([summarized_distance_data, new_row])
+        
+        # If we couldn't get distance data, return an error
+        if full_distance_data.empty or summarized_distance_data.empty:
+            return JSONResponse(content={"error": f"Could not calculate distance between {driver1} and {driver2}"})
+        
+        # Find the lap with the smallest median distance
+        closest_lap = int(summarized_distance_data.loc[summarized_distance_data['Median'].idxmin(), 'Lap'])
+        
+        # Get detailed telemetry for the closest lap
+        lap_telemetry_ahead = ahead_laps.loc[ahead_laps['RaceLapNumber']==closest_lap].get_car_data().add_distance()
+        lap_telemetry_behind = behind_laps.loc[behind_laps['RaceLapNumber']==closest_lap].get_car_data().add_distance()
+        
+        # Get distance data for a few laps around the closest lap
+        surrounding_laps = []
+        for lap_num in range(closest_lap - 1, closest_lap + 3):
+            lap_data = full_distance_data.loc[full_distance_data['Lap']==lap_num]
+            if not lap_data.empty:
+                surrounding_laps.append({
+                    'lap': lap_num,
+                    'distance_data': lap_data
+                })
+        
+        # Generate the comparison plots
+        base64_img = plot_driver_comparison_to_base64(
+            laps_driver1, laps_driver2,
+            summarized_distance_data,
+            lap_telemetry_ahead, lap_telemetry_behind,
+            surrounding_laps,
+            driver1, driver2,
+            closest_lap,
+            session.event['EventName']
+        )
+        
+        if base64_img:
+            return JSONResponse(content={
+                "image_base64": base64_img,
+                "driver1": driver1,
+                "driver2": driver2,
+                "gp": gp,
+                "identifier": identifier,
+                "year": year,
+                "stint": stint,
+                "closest_lap": closest_lap
+            })
+        else:
+            return JSONResponse(content={"error": "Failed to generate comparison plot"})
+    
+    except Exception as e:
+        print(f"Error: {e}")
+        return JSONResponse(content={"error": f"An error occurred: {str(e)}"})
+
+def plot_driver_comparison_to_base64(
+    laps_driver1, laps_driver2, 
+    summarized_distance, 
+    lap_telemetry_driver1, lap_telemetry_driver2,
+    surrounding_laps,
+    driver1, driver2,
+    closest_lap,
+    event_name
+):
+    try:
+        # Set figure size for the multi-panel plot
+        plt.rcParams['figure.figsize'] = [15, 15]
+        
+        # Create subplots - 5 panels as in the example
+        fig, ax = plt.subplots(5, sharex=False)
+        fig.suptitle(f"{driver1} vs {driver2} comparison - {event_name}")
+        
+        # Panel 1: Lap times comparison
+        ax[0].plot(laps_driver1['RaceLapNumber'], laps_driver1['LapTime'], label=driver1, color='purple')
+        ax[0].plot(laps_driver2['RaceLapNumber'], laps_driver2['LapTime'], label=driver2, color='green')
+        ax[0].set(ylabel='Laptime')
+        ax[0].legend(loc="upper center")
+        
+        # Add circles to highlight specific areas of interest
+        if closest_lap > 2 and closest_lap < max(laps_driver1['RaceLapNumber'].max(), laps_driver2['RaceLapNumber'].max()) - 2:
+            # Add a circle to highlight the closest battle area
+            x_center = closest_lap
+            y_center = np.mean([
+                laps_driver1.loc[laps_driver1['RaceLapNumber']==closest_lap, 'LapTime'].iloc[0],
+                laps_driver2.loc[laps_driver2['RaceLapNumber']==closest_lap, 'LapTime'].iloc[0]
+            ])
+            radius = 0.5
+            circle = plt.Circle((x_center, y_center), radius, fill=False, edgecolor='white', linewidth=2)
+            ax[0].add_patch(circle)
+        
+        # Panel 2: Distance between drivers
+        ax[1].plot(summarized_distance['Lap'], summarized_distance['Mean'], label='Mean', color='red')
+        ax[1].plot(summarized_distance['Lap'], summarized_distance['Median'], label='Median', color='grey')
+        ax[1].set(ylabel='Distance (meters)')
+        ax[1].legend(loc="upper center")
+        
+        # Add circle to highlight distance in interesting laps
+        if closest_lap > 2 and closest_lap < summarized_distance['Lap'].max() - 2:
+            # Add a circle to highlight the closest distance
+            x_center = closest_lap
+            y_center = summarized_distance.loc[summarized_distance['Lap']==closest_lap, 'Median'].iloc[0]
+            radius = 0.5
+            circle = plt.Circle((x_center, y_center), radius, fill=False, edgecolor='white', linewidth=2)
+            ax[1].add_patch(circle)
+        
+        # Panel 3: Distance to driver ahead across laps
+        ax[2].set_title(f"Distance to {driver1} (m)")
+        line_styles = ['dotted', 'solid', 'dotted', 'dashed']
+        colors = ['grey', 'magenta', 'white', 'lightgrey']
+        
+        for i, lap_data in enumerate(surrounding_laps):
+            lap_num = lap_data['lap']
+            distance_df = lap_data['distance_data']
+            
+            if not distance_df.empty:
+                label = f"Lap {lap_num}"
+                if lap_num == closest_lap:
+                    linestyle = 'solid'
+                    color = 'magenta'
+                else:
+                    linestyle = line_styles[i % len(line_styles)]
+                    color = colors[i % len(colors)]
+                
+                ax[2].plot(
+                    distance_df['Distance'], 
+                    distance_df['DistanceToDriverAhead'],
+                    label=label,
+                    linestyle=linestyle,
+                    color=color
+                )
+        
+        ax[2].legend(loc="lower right")
+        ax[2].set(ylabel='Distance to driver1')
+        
+        # Panel 4: Speed comparison for the closest lap
+        ax[3].set_title(f"Lap {closest_lap} telemetry")
+        ax[3].plot(lap_telemetry_driver1['Distance'], lap_telemetry_driver1['Speed'], label=driver1, color='purple')
+        ax[3].plot(lap_telemetry_driver2['Distance'], lap_telemetry_driver2['Speed'], label=driver2, color='green')
+        ax[3].set(ylabel='Speed')
+        ax[3].legend(loc="lower right")
+        
+        # Panel 5: Throttle comparison
+        ax[4].plot(lap_telemetry_driver1['Distance'], lap_telemetry_driver1['Throttle'], label=driver1, color='purple')
+        ax[4].plot(lap_telemetry_driver2['Distance'], lap_telemetry_driver2['Throttle'], label=driver2, color='green')
+        ax[4].set(ylabel='Throttle', xlabel='Distance')
+        
+        # Highlight key differences in throttle application
+        for dist in range(0, int(lap_telemetry_driver1['Distance'].max()), int(lap_telemetry_driver1['Distance'].max() / 5)):
+            d1_throttle = lap_telemetry_driver1.loc[lap_telemetry_driver1['Distance'] > dist].iloc[0]['Throttle']
+            d2_throttle = lap_telemetry_driver2.loc[lap_telemetry_driver2['Distance'] > dist].iloc[0]['Throttle']
+            
+            if abs(d1_throttle - d2_throttle) > 20:  # If throttle difference is significant
+                circle = plt.Circle((dist, min(d1_throttle, d2_throttle) + abs(d1_throttle - d2_throttle)/2), 
+                                   50, fill=False, edgecolor='white', linewidth=2)
+                ax[4].add_patch(circle)
+        
+        # Hide x labels and tick labels for top plots and y ticks for right plots
+        for a in ax.flat:
+            a.label_outer()
+        
+        # Generate the base64 image
+        img_stream = io.BytesIO()
+        plt.savefig(img_stream, format='png', dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        img_stream.seek(0)
+        base64_img = base64.b64encode(img_stream.getvalue()).decode('utf-8')
+        return base64_img
+        
+    except Exception as e:
+        print(f"Error while plotting driver comparison: {e}")
+        return None

@@ -4,6 +4,7 @@ import styled from "styled-components";
 export const TabWrapper = styled.div`
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 20px;
   margin-bottom: 20px;
 `;

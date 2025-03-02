@@ -1,8 +1,6 @@
-// src/components/RaceDataForm.jsx
 import React from "react";
 import styled from "styled-components";
 
-// Add styling for form elements
 const FormContainer = styled.form`
   display: flex;
   flex-direction: column;
@@ -56,8 +54,14 @@ const RaceDataForm = ({
   const handleDriver2Change = (event) => setDriver2(event.target.value);
   const handleStintChange = (event) => setStint(event.target.value);
 
+  // Create a wrapper function to prevent default behavior
+  const onSubmit = (e) => {
+    e.preventDefault();
+    handleSubmit(e);
+  };
+
   return (
-    <FormContainer onSubmit={handleSubmit}>
+    <FormContainer onSubmit={onSubmit}>
       <input
         type="number"
         placeholder="Enter Year"
@@ -97,7 +101,7 @@ const RaceDataForm = ({
         <input
           type="number"
           placeholder="Enter Stint Number (default: 1)"
-          value={stint}
+          value={stint || "1"}
           onChange={handleStintChange}
         />
       )}

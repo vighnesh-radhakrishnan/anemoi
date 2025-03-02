@@ -1,35 +1,6 @@
 import React from "react";
 import styled from "styled-components";
 
-const FormContainer = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  width: 100%;
-
-  input {
-    padding: 12px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    font-size: 16px;
-  }
-
-  button {
-    padding: 12px;
-    background-color: #e10600;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-
-    &:hover {
-      background-color: #b30500;
-    }
-  }
-`;
-
 const RaceDataForm = ({
   selectedYear,
   setSelectedYear,
@@ -61,7 +32,7 @@ const RaceDataForm = ({
   };
 
   return (
-    <FormContainer onSubmit={onSubmit}>
+    <div className="race-data">
       <input
         type="number"
         placeholder="Enter Year"
@@ -97,16 +68,8 @@ const RaceDataForm = ({
         onChange={handleDriver2Change}
         required
       />
-      {showStint && (
-        <input
-          type="number"
-          placeholder="Enter Stint Number (default: 1)"
-          value={stint || "1"}
-          onChange={handleStintChange}
-        />
-      )}
       <button type="submit">Get Plot</button>
-    </FormContainer>
+    </div>
   );
 };
 

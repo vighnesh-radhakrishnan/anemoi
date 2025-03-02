@@ -17,7 +17,6 @@ const DriverComparison = () => {
   const [sessionIdentifier, setSessionIdentifier] = useState("");
   const [driver1, setDriver1] = useState("");
   const [driver2, setDriver2] = useState("");
-  const [stint, setStint] = useState("1");
   const [comparisonData, setComparisonData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -29,7 +28,7 @@ const DriverComparison = () => {
     setComparisonData(null);
     try {
       const response = await axios.get(
-        `https://anemoi-backend.onrender.com/driver-comparison?year=${selectedYear}&gp=${grandPrix}&identifier=${sessionIdentifier}&driver1=${driver1}&driver2=${driver2}&stint=${stint}`
+        `https://anemoi-backend.onrender.com/driver-comparison?year=${selectedYear}&gp=${grandPrix}&identifier=${sessionIdentifier}&driver1=${driver1}&driver2=${driver2}&stint=${1}`
       );
       if (response.data.error) {
         setError(true);
@@ -62,9 +61,6 @@ const DriverComparison = () => {
           setDriver1={setDriver1}
           driver2={driver2}
           setDriver2={setDriver2}
-          stint={stint}
-          setStint={setStint}
-          showStint={true}
           handleSubmit={handleSubmit}
         />
       </FormWrapper>
@@ -93,10 +89,6 @@ const DriverComparison = () => {
             <div>
               <strong>Identifier</strong>
               <span>{comparisonData.identifier}</span>
-            </div>
-            <div>
-              <strong>Stint</strong>
-              <span>{comparisonData.stint}</span>
             </div>
             <div>
               <strong>Driver 1</strong>

@@ -1,4 +1,5 @@
 import React from "react";
+import styled from "styled-components";
 
 const RaceDataForm = ({
   selectedYear,
@@ -11,6 +12,9 @@ const RaceDataForm = ({
   setDriver1,
   driver2,
   setDriver2,
+  stint,
+  setStint,
+  showStint = false,
   handleSubmit,
 }) => {
   const handleYearChange = (event) => setSelectedYear(event.target.value);
@@ -20,20 +24,17 @@ const RaceDataForm = ({
   const handleDriver1Change = (event) => setDriver1(event.target.value);
   const handleDriver2Change = (event) => setDriver2(event.target.value);
 
-  const onSubmit = (e) => {
-    e.preventDefault();
-    handleSubmit(e);
+  const handleButtonClick = () => {
+    // Create a synthetic event object since handleSubmit expects an event
+    const syntheticEvent = { preventDefault: () => {} };
+    handleSubmit(syntheticEvent);
   };
 
   return (
-    <form
+    <div
+      className="race-data"
       onSubmit={onSubmit}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "15px",
-        width: "100%",
-      }}
+      style={{ display: "flex", gap: "15px" }}
     >
       <input
         type="number"
@@ -70,8 +71,10 @@ const RaceDataForm = ({
         onChange={handleDriver2Change}
         required
       />
-      <button type="submit">Get Plot</button>
-    </form>
+      <button type="button" onClick={handleButtonClick}>
+        Get Plot
+      </button>
+    </div>
   );
 };
 

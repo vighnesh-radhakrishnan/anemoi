@@ -691,17 +691,22 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
         print(f"Error while plotting track dominance: {e}")
         return None
 
-
 @app.get("/driver-comparison")
 async def get_driver_comparison(year: int, gp: str, identifier: str, driver1: str, driver2: str, stint: int = 1):
     try:
+        # Enable cache to improve performance
+        fastf1.Cache.enable_cache('./cache')
+        
         # Load the session data
         session = fastf1.get_session(year, gp, identifier)
         session.load(laps=True, telemetry=True, weather=False, messages=False)
         
+        # Get all laps
+        laps = session.laps
+        
         # Get laps for both drivers
-        laps_driver1 = session.laps.pick_drivers(driver1)
-        laps_driver2 = session.laps.pick_drivers(driver2)
+        laps_driver1 = laps.pick_driver(driver1)
+        laps_driver2 = laps.pick_driver(driver2)
         
         # Filter by stint if provided
         if stint is not None:
@@ -713,74 +718,60 @@ async def get_driver_comparison(year: int, gp: str, identifier: str, driver1: st
             return JSONResponse(content={"error": f"Not enough lap data for one or both drivers in stint {stint}"})
         
         # Create race lap number (subtracting 1 to account for formation lap)
-        # Use proper pandas method to avoid SettingWithCopyWarning
         laps_driver1 = laps_driver1.copy()
         laps_driver2 = laps_driver2.copy()
         laps_driver1.loc[:, 'RaceLapNumber'] = laps_driver1['LapNumber'] - 1
         laps_driver2.loc[:, 'RaceLapNumber'] = laps_driver2['LapNumber'] - 1
         
-        # Get driver numbers directly from lap data instead of session.get_driver
-        try:
-            driver1_number = laps_driver1['DriverNumber'].iloc[0]
-            driver2_number = laps_driver2['DriverNumber'].iloc[0]
-        except:
-            return JSONResponse(content={"error": f"Could not get driver numbers for {driver1} and {driver2}"})
+        # Find which driver is generally ahead (use median lap time as a proxy)
+        d1_median_time = laps_driver1['LapTime'].median()
+        d2_median_time = laps_driver2['LapTime'].median()
         
-        # Determine which driver is ahead based on position
-        ahead_driver = driver1
-        behind_driver = driver2
-        ahead_driver_number = driver1_number
-        behind_driver_number = driver2_number
-        ahead_laps = laps_driver1
-        behind_laps = laps_driver2
+        # Determine which driver is likely ahead based on lap times
+        if d1_median_time < d2_median_time:
+            ahead_driver = driver1
+            behind_driver = driver2
+            ahead_laps = laps_driver1
+            behind_laps = laps_driver2
+        else:
+            ahead_driver = driver2
+            behind_driver = driver1
+            ahead_laps = laps_driver2
+            behind_laps = laps_driver1
         
-        # Try to determine who's ahead based on position or lap times
-        try:
-            d1_median_time = laps_driver1['LapTime'].median()
-            d2_median_time = laps_driver2['LapTime'].median()
-            
-            if d2_median_time < d1_median_time:
-                ahead_driver = driver2
-                behind_driver = driver1
-                ahead_driver_number = driver2_number
-                behind_driver_number = driver1_number
-                ahead_laps = laps_driver2
-                behind_laps = laps_driver1
-        except:
-            pass  # If this fails, stick with the default assignment
-        
-        # Process distance data
+        # Create empty DataFrames for storing distance data
         full_distance_data = pd.DataFrame()
         summarized_distance_data = pd.DataFrame()
         
-        for _, lap in behind_laps.iterrows():
+        # Use iterlaps() as in the original article, which is more reliable
+        for lap_number, lap_data in behind_laps.iterlaps():
             try:
-                # Get the lap telemetry with car data
-                tel = lap.get_telemetry().add_distance()
+                # Get telemetry for this lap
+                telemetry = lap_data.get_car_data().add_distance().add_driver_ahead()
                 
-                # Check if telemetry has driver ahead data
-                if 'DriverAhead' in tel.columns:
-                    tel = tel.add_driver_ahead()
-                    # Filter to only include data where driver ahead is our ahead_driver
-                    tel_filtered = tel[tel['DriverAhead'] == str(ahead_driver_number)]
+                # Get the driver number for the ahead driver from their laps
+                ahead_driver_number = str(ahead_laps['DriverNumber'].iloc[0])
+                
+                # Filter to only include data where driver ahead is our ahead_driver
+                telemetry_filtered = telemetry[telemetry['DriverAhead'] == ahead_driver_number]
+                
+                if len(telemetry_filtered) > 0:
+                    # Full distance data
+                    lap_telemetry = telemetry_filtered[['Distance', 'DistanceToDriverAhead']].copy()
+                    lap_telemetry.loc[:, 'Lap'] = lap_number + 1  # Adjust lap number as in article
+                    full_distance_data = pd.concat([full_distance_data, lap_telemetry])
                     
-                    if len(tel_filtered) > 0:
-                        # Full distance data
-                        lap_telemetry = tel_filtered[['Distance', 'DistanceToDriverAhead']].copy()
-                        lap_telemetry.loc[:, 'Lap'] = lap['RaceLapNumber']
-                        full_distance_data = pd.concat([full_distance_data, lap_telemetry])
-                        
-                        # Summarized distance data
-                        distance_mean = np.nanmean(tel_filtered['DistanceToDriverAhead'])
-                        distance_median = np.nanmedian(tel_filtered['DistanceToDriverAhead'])
-                        new_row = pd.DataFrame({
-                            'Lap': [lap['RaceLapNumber']],
-                            'Mean': [distance_mean],
-                            'Median': [distance_median]
-                        })
-                        summarized_distance_data = pd.concat([summarized_distance_data, new_row])
+                    # Summarized distance data
+                    distance_mean = np.nanmean(telemetry_filtered['DistanceToDriverAhead'])
+                    distance_median = np.nanmedian(telemetry_filtered['DistanceToDriverAhead'])
+                    new_row = pd.DataFrame({
+                        'Lap': [lap_number + 1],
+                        'Mean': [distance_mean],
+                        'Median': [distance_median]
+                    })
+                    summarized_distance_data = pd.concat([summarized_distance_data, new_row])
             except Exception as e:
-                print(f"Error processing lap {lap['RaceLapNumber']}: {e}")
+                print(f"Error processing lap {lap_number + 1}: {e}")
                 continue
         
         # If we couldn't get distance data, return an error
@@ -796,19 +787,26 @@ async def get_driver_comparison(year: int, gp: str, identifier: str, driver1: st
         
         # Get detailed telemetry for the closest lap
         try:
-            ahead_lap = ahead_laps[ahead_laps['RaceLapNumber'] == closest_lap].iloc[0]
-            behind_lap = behind_laps[behind_laps['RaceLapNumber'] == closest_lap].iloc[0]
+            # Get telemetry for both drivers for this lap (similar to article)
+            lap_telemetry_ahead = ahead_laps.loc[ahead_laps['RaceLapNumber'] == closest_lap].get_car_data().add_distance()
+            lap_telemetry_behind = behind_laps.loc[behind_laps['RaceLapNumber'] == closest_lap].get_car_data().add_distance()
             
-            lap_telemetry_ahead = ahead_lap.get_telemetry().add_distance()
-            lap_telemetry_behind = behind_lap.get_telemetry().add_distance()
-        except:
-            # Fallback to using the fastest lap if we can't get the closest lap
-            lap_telemetry_ahead = ahead_laps.pick_fastest().get_telemetry().add_distance()
-            lap_telemetry_behind = behind_laps.pick_fastest().get_telemetry().add_distance()
+            if lap_telemetry_ahead.empty or lap_telemetry_behind.empty:
+                raise ValueError("Empty telemetry data for closest lap")
+        except Exception as e:
+            print(f"Error getting telemetry for lap {closest_lap}: {e}")
+            # Fall back to using fastest laps
+            try:
+                lap_telemetry_ahead = ahead_laps.pick_fastest().get_car_data().add_distance()
+                lap_telemetry_behind = behind_laps.pick_fastest().get_car_data().add_distance()
+                closest_lap = ahead_laps.pick_fastest()['RaceLapNumber']
+            except Exception as e2:
+                print(f"Error getting fallback telemetry: {e2}")
+                return JSONResponse(content={"error": f"Could not get telemetry data for {driver1} and {driver2}"})
         
-        # Get distance data for a few laps around the closest lap
+        # Get distance data for surrounding laps (3 before and 3 after)
         surrounding_laps = []
-        for lap_num in range(closest_lap - 1, closest_lap + 3):
+        for lap_num in range(max(closest_lap - 1, 1), min(closest_lap + 3, int(full_distance_data['Lap'].max()) + 1)):
             lap_data = full_distance_data.loc[full_distance_data['Lap'] == lap_num]
             if not lap_data.empty:
                 surrounding_laps.append({
@@ -842,8 +840,11 @@ async def get_driver_comparison(year: int, gp: str, identifier: str, driver1: st
             return JSONResponse(content={"error": "Failed to generate comparison plot"})
     
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error in get_driver_comparison: {e}")
+        import traceback
+        traceback.print_exc()
         return JSONResponse(content={"error": f"An error occurred: {str(e)}"})
+
 def plot_driver_comparison_to_base64(
     laps_driver1, laps_driver2, 
     summarized_distance, 

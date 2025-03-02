@@ -1,4 +1,36 @@
+// src/components/RaceDataForm.jsx
 import React from "react";
+import styled from "styled-components";
+
+// Add styling for form elements
+const FormContainer = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+
+  input {
+    padding: 12px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+  }
+
+  button {
+    padding: 12px;
+    background-color: #e10600;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+
+    &:hover {
+      background-color: #b30500;
+    }
+  }
+`;
 
 const RaceDataForm = ({
   selectedYear,
@@ -25,7 +57,7 @@ const RaceDataForm = ({
   const handleStintChange = (event) => setStint(event.target.value);
 
   return (
-    <form onSubmit={handleSubmit} className="race-data-form">
+    <FormContainer onSubmit={handleSubmit}>
       <input
         type="number"
         placeholder="Enter Year"
@@ -70,7 +102,7 @@ const RaceDataForm = ({
         />
       )}
       <button type="submit">Get Plot</button>
-    </form>
+    </FormContainer>
   );
 };
 

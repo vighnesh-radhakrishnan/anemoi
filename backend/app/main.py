@@ -841,7 +841,7 @@ async def get_driver_comparison(year: int, gp: str, identifier: str, driver1: st
         import traceback
         traceback.print_exc()
         return JSONResponse(content={"error": f"An error occurred: {str(e)}"})
-
+    
 def plot_driver_comparison_to_base64(
     laps_driver1, laps_driver2, 
     summarized_distance, 

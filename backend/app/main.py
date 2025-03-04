@@ -680,7 +680,7 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
                    facecolor='none',    # White background
                    edgecolor='none',
                    transparent=True,  # Non-transparent background
-                   pad_inches=0.1)       # Add padding around the plot
+                   pad_inches=0.1)       # padding around the plot
         plt.close()
         
         img_stream.seek(0)
@@ -701,7 +701,7 @@ async def get_driver_comparison(year: int, gp: str, identifier: str, driver1: st
         # Get all laps
         laps = session.laps
         
-        # Get laps for both drivers
+        # Get laps data for both drivers
         laps_driver1 = laps.pick_driver(driver1)
         laps_driver2 = laps.pick_driver(driver2)
         
@@ -710,7 +710,7 @@ async def get_driver_comparison(year: int, gp: str, identifier: str, driver1: st
             laps_driver1 = laps_driver1.loc[laps_driver1['Stint'] == stint]
             laps_driver2 = laps_driver2.loc[laps_driver2['Stint'] == stint]
         
-        # Check if we have enough data
+        # Check if required data is fetched
         if laps_driver1.empty or laps_driver2.empty:
             return JSONResponse(content={"error": f"Not enough lap data for one or both drivers in stint {stint}"})
         
@@ -740,7 +740,6 @@ async def get_driver_comparison(year: int, gp: str, identifier: str, driver1: st
         full_distance_data = pd.DataFrame()
         summarized_distance_data = pd.DataFrame()
         
-        # Use iterlaps() as in the original article, which is more reliable
         for lap_number, lap_data in behind_laps.iterlaps():
             try:
                 # Get telemetry for this lap
@@ -771,7 +770,7 @@ async def get_driver_comparison(year: int, gp: str, identifier: str, driver1: st
                 print(f"Error processing lap {lap_number + 1}: {e}")
                 continue
         
-        # If we couldn't get distance data, return an error
+        # If get distance data not recieved, return an error
         if full_distance_data.empty or summarized_distance_data.empty:
             return JSONResponse(content={
                 "error": f"Could not calculate distance between {driver1} and {driver2}. They may not have been close enough on track."

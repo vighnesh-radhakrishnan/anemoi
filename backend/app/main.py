@@ -696,15 +696,15 @@ async def get_driver_comparison(year: int, gp: str, identifier: str, driver1: st
     try:
         print(f"Starting driver comparison request for {driver1} vs {driver2} at {gp} {year}")
         
-        # Load only necessary data - minimize what's being loaded
+        # Load session with telemetry set to True
         session = fastf1.get_session(year, gp, identifier)
-        # Set specific flags to load only what's needed
-        session.load(laps=True, telemetry=False, weather=False, messages=False)
+        # Need telemetry=True to access car data
+        session.load(laps=True, telemetry=True, weather=False, messages=False)
         print("Session data loaded successfully")
         
         # Get laps data for both drivers
-        laps_driver1 = session.laps.pick_driver(driver1)
-        laps_driver2 = session.laps.pick_driver(driver2)
+        laps_driver1 = session.laps.pick_drivers(driver1)  # Use pick_drivers instead of deprecated pick_driver
+        laps_driver2 = session.laps.pick_drivers(driver2)
         
         # Check if we found any lap data before proceeding
         if laps_driver1.empty or laps_driver2.empty:
@@ -729,73 +729,46 @@ async def get_driver_comparison(year: int, gp: str, identifier: str, driver1: st
         laps_driver1.loc[:, 'RaceLapNumber'] = laps_driver1['LapNumber'] - 1
         laps_driver2.loc[:, 'RaceLapNumber'] = laps_driver2['LapNumber'] - 1
         
-        # Simplify: just use fastest lap telemetry for each driver
-        try:
-            fastest_d1 = laps_driver1.pick_fastest()
-            fastest_d2 = laps_driver2.pick_fastest()
-            
-            if fastest_d1.empty or fastest_d2.empty:
-                print("No fastest lap found")
-                return JSONResponse(content={"error": "Could not determine fastest laps"})
+        # Skip telemetry and just create a simplified lap time comparison
+        base64_img = lap_time_comparison_plot(
+            laps_driver1, laps_driver2,
+            driver1, driver2,
+            session.event['EventName']
+        )
+        
+        if base64_img:
+            print("Successfully generated image")
+            return JSONResponse(content={
+                "image_base64": base64_img,
+                "driver1": driver1,
+                "driver2": driver2,
+                "gp": gp,
+                "identifier": identifier,
+                "year": year,
+                "stint": stint
+            })
+        else:
+            print("Failed to generate image")
+            return JSONResponse(content={"error": "Failed to generate comparison plot"})
                 
-            print(f"Loading telemetry for fastest laps")
-            
-            # Load telemetry specifically for these laps
-            tel_d1 = fastest_d1.get_telemetry()
-            tel_d2 = fastest_d2.get_telemetry()
-            
-            # Add distance data
-            tel_d1 = tel_d1.add_distance()
-            tel_d2 = tel_d2.add_distance()
-            
-            # Generate the comparison plot
-            base64_img = simplified_plot_to_base64(
-                laps_driver1, laps_driver2,
-                tel_d1, tel_d2,
-                driver1, driver2,
-                session.event['EventName']
-            )
-            
-            if base64_img:
-                print("Successfully generated image")
-                return JSONResponse(content={
-                    "image_base64": base64_img,
-                    "driver1": driver1,
-                    "driver2": driver2,
-                    "gp": gp,
-                    "identifier": identifier,
-                    "year": year,
-                    "stint": stint
-                })
-            else:
-                print("Failed to generate image")
-                return JSONResponse(content={"error": "Failed to generate comparison plot"})
-                
-        except Exception as e:
-            print(f"Error processing telemetry: {e}")
-            import traceback
-            traceback.print_exc()
-            return JSONResponse(content={"error": f"Error processing telemetry: {str(e)}"})
-    
     except Exception as e:
         print(f"Error in get_driver_comparison: {e}")
         import traceback
         traceback.print_exc()
         return JSONResponse(content={"error": f"An error occurred: {str(e)}"})
     
-def simplified_plot_to_base64(
+def lap_time_comparison_plot(
     laps_driver1, laps_driver2, 
-    tel_driver1, tel_driver2,
     driver1, driver2,
     event_name
 ):
     try:
-        # Set figure size for a simpler plot
-        plt.rcParams['figure.figsize'] = [12, 12]
+        # Set figure size 
+        plt.rcParams['figure.figsize'] = [10, 6]
         
-        # Create just 3 panels instead of 5
-        fig, ax = plt.subplots(3, sharex=False)
-        fig.suptitle(f"{driver1} vs {driver2} comparison - {event_name}")
+        # Create a single panel plot - simpler and faster
+        fig, ax = plt.subplots()
+        fig.suptitle(f"{driver1} vs {driver2} Lap Time Comparison - {event_name}")
         
         # Convert timedelta to seconds if needed
         if 'LapTime' in laps_driver1.columns and not pd.api.types.is_numeric_dtype(laps_driver1['LapTime']):
@@ -806,45 +779,51 @@ def simplified_plot_to_base64(
         else:
             laptime_col = 'LapTime'
         
-        # Panel 1: Lap times comparison
-        ax[0].plot(laps_driver1['RaceLapNumber'], laps_driver1[laptime_col], label=driver1, color='purple')
-        ax[0].plot(laps_driver2['RaceLapNumber'], laps_driver2[laptime_col], label=driver2, color='green')
-        ax[0].set(ylabel='Laptime (s)')
-        ax[0].legend(loc="upper center")
+        # Plot lap times
+        ax.plot(laps_driver1['RaceLapNumber'], laps_driver1[laptime_col], 'o-', label=driver1, color='purple')
+        ax.plot(laps_driver2['RaceLapNumber'], laps_driver2[laptime_col], 'o-', label=driver2, color='green')
         
-        # Check if required columns exist in telemetry
-        if ('Speed' in tel_driver1.columns and 'Speed' in tel_driver2.columns and
-            'Distance' in tel_driver1.columns and 'Distance' in tel_driver2.columns):
+        # Add labels and legend
+        ax.set_xlabel('Lap Number')
+        ax.set_ylabel('Lap Time (seconds)')
+        ax.legend(loc="upper right")
+        ax.grid(True, linestyle='--', alpha=0.7)
+        
+        # Add best lap markers
+        try:
+            d1_best_lap = laps_driver1[laptime_col].min()
+            d2_best_lap = laps_driver2[laptime_col].min()
+            d1_best_lap_idx = laps_driver1[laptime_col].idxmin()
+            d2_best_lap_idx = laps_driver2[laptime_col].idxmin()
             
-            # Panel 2: Speed comparison
-            ax[1].set_title(f"Speed Comparison (Fastest Laps)")
-            ax[1].plot(tel_driver1['Distance'], tel_driver1['Speed'], label=driver1, color='purple')
-            ax[1].plot(tel_driver2['Distance'], tel_driver2['Speed'], label=driver2, color='green')
-            ax[1].set(ylabel='Speed (km/h)')
-            ax[1].legend(loc="lower right")
+            d1_best_lap_num = laps_driver1.loc[d1_best_lap_idx, 'RaceLapNumber']
+            d2_best_lap_num = laps_driver2.loc[d2_best_lap_idx, 'RaceLapNumber']
             
-            # Panel 3: Throttle comparison (if available)
-            if 'Throttle' in tel_driver1.columns and 'Throttle' in tel_driver2.columns:
-                ax[2].plot(tel_driver1['Distance'], tel_driver1['Throttle'], label=driver1, color='purple')
-                ax[2].plot(tel_driver2['Distance'], tel_driver2['Throttle'], label=driver2, color='green')
-                ax[2].set(ylabel='Throttle %', xlabel='Distance (m)')
-                ax[2].legend(loc="lower right")
-            else:
-                ax[2].text(0.5, 0.5, "Throttle data not available", 
-                          horizontalalignment='center', verticalalignment='center')
-        else:
-            ax[1].text(0.5, 0.5, "Speed telemetry data not available", 
-                      horizontalalignment='center', verticalalignment='center')
-            ax[2].text(0.5, 0.5, "Throttle telemetry data not available", 
-                      horizontalalignment='center', verticalalignment='center')
-        
-        # Hide x labels and tick labels for top plots and y ticks for right plots
-        for a in ax.flat:
-            a.label_outer()
-        
+            # Annotate best laps
+            ax.annotate(f'Best: {d1_best_lap:.3f}s', 
+                        xy=(d1_best_lap_num, d1_best_lap),
+                        xytext=(5, -15), 
+                        textcoords='offset points',
+                        color='purple',
+                        fontweight='bold')
+            
+            ax.annotate(f'Best: {d2_best_lap:.3f}s', 
+                        xy=(d2_best_lap_num, d2_best_lap),
+                        xytext=(5, 15), 
+                        textcoords='offset points',
+                        color='green',
+                        fontweight='bold')
+            
+            # Highlight best laps
+            ax.plot(d1_best_lap_num, d1_best_lap, 'o', ms=12, mfc='none', mec='purple', mew=2)
+            ax.plot(d2_best_lap_num, d2_best_lap, 'o', ms=12, mfc='none', mec='green', mew=2)
+            
+        except Exception as e:
+            print(f"Error highlighting best laps: {e}")
+            
         # Generate the base64 image
         img_stream = io.BytesIO()
-        plt.savefig(img_stream, format='png', dpi=200, bbox_inches='tight')  # Lower DPI for faster rendering
+        plt.savefig(img_stream, format='png', dpi=100, bbox_inches='tight')  # Use even lower DPI
         plt.close()
         
         img_stream.seek(0)
@@ -852,11 +831,11 @@ def simplified_plot_to_base64(
         return base64_img
         
     except Exception as e:
-        print(f"Error while plotting driver comparison: {e}")
+        print(f"Error while plotting lap time comparison: {e}")
         import traceback
         traceback.print_exc()
         return None
-       
+        
 def plot_driver_comparison_to_base64(
     laps_driver1, laps_driver2, 
     summarized_distance, 

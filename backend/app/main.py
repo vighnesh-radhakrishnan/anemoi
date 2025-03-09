@@ -694,146 +694,88 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
 @app.get("/driver-comparison")
 async def get_driver_comparison(year: int, gp: str, identifier: str, driver1: str, driver2: str, stint: int = 1):
     try:
-        # Load the session data without using cache
-        session = fastf1.get_session(year, gp, identifier)
-        session.load(laps=True, telemetry=True, weather=False, messages=False)
+        print(f"Starting driver comparison request for {driver1} vs {driver2} at {gp} {year}")
         
-        # Get all laps
-        laps = session.laps
+        # Load only necessary data - minimize what's being loaded
+        session = fastf1.get_session(year, gp, identifier)
+        # Set specific flags to load only what's needed
+        session.load(laps=True, telemetry=False, weather=False, messages=False)
+        print("Session data loaded successfully")
         
         # Get laps data for both drivers
-        laps_driver1 = laps.pick_driver(driver1)
-        laps_driver2 = laps.pick_driver(driver2)
+        laps_driver1 = session.laps.pick_driver(driver1)
+        laps_driver2 = session.laps.pick_driver(driver2)
+        
+        # Check if we found any lap data before proceeding
+        if laps_driver1.empty or laps_driver2.empty:
+            print(f"No lap data found for drivers: {driver1}={len(laps_driver1)}, {driver2}={len(laps_driver2)}")
+            return JSONResponse(content={"error": f"Not enough lap data for one or both drivers"})
+        
+        print(f"Found {len(laps_driver1)} laps for {driver1} and {len(laps_driver2)} laps for {driver2}")
         
         # Filter by stint if provided
         if stint is not None:
             laps_driver1 = laps_driver1.loc[laps_driver1['Stint'] == stint]
             laps_driver2 = laps_driver2.loc[laps_driver2['Stint'] == stint]
+            print(f"After stint filtering: {len(laps_driver1)} laps for {driver1} and {len(laps_driver2)} laps for {driver2}")
         
-        # Check if required data is fetched
+        # Check if we have enough data after stint filtering
         if laps_driver1.empty or laps_driver2.empty:
             return JSONResponse(content={"error": f"Not enough lap data for one or both drivers in stint {stint}"})
         
-        # Create race lap number (subtracting 1 to account for formation lap)
+        # Create race lap number
         laps_driver1 = laps_driver1.copy()
         laps_driver2 = laps_driver2.copy()
         laps_driver1.loc[:, 'RaceLapNumber'] = laps_driver1['LapNumber'] - 1
         laps_driver2.loc[:, 'RaceLapNumber'] = laps_driver2['LapNumber'] - 1
         
-        # Find which driver is generally ahead (use median lap time as a proxy)
-        d1_median_time = laps_driver1['LapTime'].median()
-        d2_median_time = laps_driver2['LapTime'].median()
-        
-        # Determine which driver is likely ahead based on lap times
-        if d1_median_time < d2_median_time:
-            ahead_driver = driver1
-            behind_driver = driver2
-            ahead_laps = laps_driver1
-            behind_laps = laps_driver2
-        else:
-            ahead_driver = driver2
-            behind_driver = driver1
-            ahead_laps = laps_driver2
-            behind_laps = laps_driver1
-        
-        # Create empty DataFrames for storing distance data
-        full_distance_data = pd.DataFrame()
-        summarized_distance_data = pd.DataFrame()
-        
-        for lap_number, lap_data in behind_laps.iterlaps():
-            try:
-                # Get telemetry for this lap
-                telemetry = lap_data.get_car_data().add_distance().add_driver_ahead()
-                
-                # Get the driver number for the ahead driver from their laps
-                ahead_driver_number = str(ahead_laps['DriverNumber'].iloc[0])
-                
-                # Filter to only include data where driver ahead is our ahead_driver
-                telemetry_filtered = telemetry[telemetry['DriverAhead'] == ahead_driver_number]
-                
-                if len(telemetry_filtered) > 0:
-                    # Full distance data
-                    lap_telemetry = telemetry_filtered[['Distance', 'DistanceToDriverAhead']].copy()
-                    lap_telemetry.loc[:, 'Lap'] = lap_number + 1  # Adjust lap number as in article
-                    full_distance_data = pd.concat([full_distance_data, lap_telemetry])
-                    
-                    # Summarized distance data
-                    distance_mean = np.nanmean(telemetry_filtered['DistanceToDriverAhead'])
-                    distance_median = np.nanmedian(telemetry_filtered['DistanceToDriverAhead'])
-                    new_row = pd.DataFrame({
-                        'Lap': [lap_number + 1],
-                        'Mean': [distance_mean],
-                        'Median': [distance_median]
-                    })
-                    summarized_distance_data = pd.concat([summarized_distance_data, new_row])
-            except Exception as e:
-                print(f"Error processing lap {lap_number + 1}: {e}")
-                continue
-        
-        # If get distance data not recieved, return an error
-        if full_distance_data.empty or summarized_distance_data.empty:
-            return JSONResponse(content={
-                "error": f"Could not calculate distance between {driver1} and {driver2}. They may not have been close enough on track."
-            })
-        
-        # Find the lap with the smallest median distance
-        summarized_distance_data = summarized_distance_data.reset_index(drop=True)
-        closest_lap_idx = summarized_distance_data['Median'].idxmin()
-        closest_lap = int(summarized_distance_data.loc[closest_lap_idx, 'Lap'])
-        
-        # Get detailed telemetry for the closest lap
+        # Simplify: just use fastest lap telemetry for each driver
         try:
-            # Get telemetry for both drivers for this lap (similar to article)
-            lap_telemetry_ahead = ahead_laps.loc[ahead_laps['RaceLapNumber'] == closest_lap].get_car_data().add_distance()
-            lap_telemetry_behind = behind_laps.loc[behind_laps['RaceLapNumber'] == closest_lap].get_car_data().add_distance()
+            fastest_d1 = laps_driver1.pick_fastest()
+            fastest_d2 = laps_driver2.pick_fastest()
             
-            if lap_telemetry_ahead.empty or lap_telemetry_behind.empty:
-                raise ValueError("Empty telemetry data for closest lap")
-        except Exception as e:
-            print(f"Error getting telemetry for lap {closest_lap}: {e}")
-            # Fall back to using fastest laps
-            try:
-                lap_telemetry_ahead = ahead_laps.pick_fastest().get_car_data().add_distance()
-                lap_telemetry_behind = behind_laps.pick_fastest().get_car_data().add_distance()
-                closest_lap = ahead_laps.pick_fastest()['RaceLapNumber']
-            except Exception as e2:
-                print(f"Error getting fallback telemetry: {e2}")
-                return JSONResponse(content={"error": f"Could not get telemetry data for {driver1} and {driver2}"})
-        
-        # Get distance data for surrounding laps (3 before and 3 after)
-        surrounding_laps = []
-        for lap_num in range(max(closest_lap - 1, 1), min(closest_lap + 3, int(full_distance_data['Lap'].max()) + 1)):
-            lap_data = full_distance_data.loc[full_distance_data['Lap'] == lap_num]
-            if not lap_data.empty:
-                surrounding_laps.append({
-                    'lap': lap_num,
-                    'distance_data': lap_data.reset_index(drop=True)
+            if fastest_d1.empty or fastest_d2.empty:
+                print("No fastest lap found")
+                return JSONResponse(content={"error": "Could not determine fastest laps"})
+                
+            print(f"Loading telemetry for fastest laps")
+            
+            # Load telemetry specifically for these laps
+            tel_d1 = fastest_d1.get_telemetry()
+            tel_d2 = fastest_d2.get_telemetry()
+            
+            # Add distance data
+            tel_d1 = tel_d1.add_distance()
+            tel_d2 = tel_d2.add_distance()
+            
+            # Generate the comparison plot
+            base64_img = simplified_plot_to_base64(
+                laps_driver1, laps_driver2,
+                tel_d1, tel_d2,
+                driver1, driver2,
+                session.event['EventName']
+            )
+            
+            if base64_img:
+                print("Successfully generated image")
+                return JSONResponse(content={
+                    "image_base64": base64_img,
+                    "driver1": driver1,
+                    "driver2": driver2,
+                    "gp": gp,
+                    "identifier": identifier,
+                    "year": year,
+                    "stint": stint
                 })
-        
-        # Generate the comparison plots
-        base64_img = plot_driver_comparison_to_base64(
-            laps_driver1, laps_driver2,
-            summarized_distance_data,
-            lap_telemetry_ahead, lap_telemetry_behind,
-            surrounding_laps,
-            driver1, driver2,
-            closest_lap,
-            session.event['EventName']
-        )
-        
-        if base64_img:
-            return JSONResponse(content={
-                "image_base64": base64_img,
-                "driver1": driver1,
-                "driver2": driver2,
-                "gp": gp,
-                "identifier": identifier,
-                "year": year,
-                "stint": stint,
-                "closest_lap": closest_lap
-            })
-        else:
-            return JSONResponse(content={"error": "Failed to generate comparison plot"})
+            else:
+                print("Failed to generate image")
+                return JSONResponse(content={"error": "Failed to generate comparison plot"})
+                
+        except Exception as e:
+            print(f"Error processing telemetry: {e}")
+            import traceback
+            traceback.print_exc()
+            return JSONResponse(content={"error": f"Error processing telemetry: {str(e)}"})
     
     except Exception as e:
         print(f"Error in get_driver_comparison: {e}")
@@ -841,6 +783,80 @@ async def get_driver_comparison(year: int, gp: str, identifier: str, driver1: st
         traceback.print_exc()
         return JSONResponse(content={"error": f"An error occurred: {str(e)}"})
     
+def simplified_plot_to_base64(
+    laps_driver1, laps_driver2, 
+    tel_driver1, tel_driver2,
+    driver1, driver2,
+    event_name
+):
+    try:
+        # Set figure size for a simpler plot
+        plt.rcParams['figure.figsize'] = [12, 12]
+        
+        # Create just 3 panels instead of 5
+        fig, ax = plt.subplots(3, sharex=False)
+        fig.suptitle(f"{driver1} vs {driver2} comparison - {event_name}")
+        
+        # Convert timedelta to seconds if needed
+        if 'LapTime' in laps_driver1.columns and not pd.api.types.is_numeric_dtype(laps_driver1['LapTime']):
+            # Convert timedelta to seconds
+            laps_driver1['LapTime_sec'] = laps_driver1['LapTime'].dt.total_seconds()
+            laps_driver2['LapTime_sec'] = laps_driver2['LapTime'].dt.total_seconds()
+            laptime_col = 'LapTime_sec'
+        else:
+            laptime_col = 'LapTime'
+        
+        # Panel 1: Lap times comparison
+        ax[0].plot(laps_driver1['RaceLapNumber'], laps_driver1[laptime_col], label=driver1, color='purple')
+        ax[0].plot(laps_driver2['RaceLapNumber'], laps_driver2[laptime_col], label=driver2, color='green')
+        ax[0].set(ylabel='Laptime (s)')
+        ax[0].legend(loc="upper center")
+        
+        # Check if required columns exist in telemetry
+        if ('Speed' in tel_driver1.columns and 'Speed' in tel_driver2.columns and
+            'Distance' in tel_driver1.columns and 'Distance' in tel_driver2.columns):
+            
+            # Panel 2: Speed comparison
+            ax[1].set_title(f"Speed Comparison (Fastest Laps)")
+            ax[1].plot(tel_driver1['Distance'], tel_driver1['Speed'], label=driver1, color='purple')
+            ax[1].plot(tel_driver2['Distance'], tel_driver2['Speed'], label=driver2, color='green')
+            ax[1].set(ylabel='Speed (km/h)')
+            ax[1].legend(loc="lower right")
+            
+            # Panel 3: Throttle comparison (if available)
+            if 'Throttle' in tel_driver1.columns and 'Throttle' in tel_driver2.columns:
+                ax[2].plot(tel_driver1['Distance'], tel_driver1['Throttle'], label=driver1, color='purple')
+                ax[2].plot(tel_driver2['Distance'], tel_driver2['Throttle'], label=driver2, color='green')
+                ax[2].set(ylabel='Throttle %', xlabel='Distance (m)')
+                ax[2].legend(loc="lower right")
+            else:
+                ax[2].text(0.5, 0.5, "Throttle data not available", 
+                          horizontalalignment='center', verticalalignment='center')
+        else:
+            ax[1].text(0.5, 0.5, "Speed telemetry data not available", 
+                      horizontalalignment='center', verticalalignment='center')
+            ax[2].text(0.5, 0.5, "Throttle telemetry data not available", 
+                      horizontalalignment='center', verticalalignment='center')
+        
+        # Hide x labels and tick labels for top plots and y ticks for right plots
+        for a in ax.flat:
+            a.label_outer()
+        
+        # Generate the base64 image
+        img_stream = io.BytesIO()
+        plt.savefig(img_stream, format='png', dpi=200, bbox_inches='tight')  # Lower DPI for faster rendering
+        plt.close()
+        
+        img_stream.seek(0)
+        base64_img = base64.b64encode(img_stream.getvalue()).decode('utf-8')
+        return base64_img
+        
+    except Exception as e:
+        print(f"Error while plotting driver comparison: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+       
 def plot_driver_comparison_to_base64(
     laps_driver1, laps_driver2, 
     summarized_distance, 

@@ -139,7 +139,7 @@ export const NavItem = styled.li`
     transform-origin: bottom left;
   }
   @media (max-width: 968px) {
-    width: 100%;
+    width: 35%;
     &::after {
       bottom: -5px;
       height: 2px;

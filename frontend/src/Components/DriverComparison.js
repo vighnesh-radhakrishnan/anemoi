@@ -9,7 +9,7 @@ import {
   NoDataMessage,
   SessionDetails,
 } from "./Container";
-import RaceDataForm from "../components/RaceDataForm";
+import RaceDataForm from "./RaceDataForm";
 
 const DriverComparison = () => {
   const [selectedYear, setSelectedYear] = useState("");

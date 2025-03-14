@@ -27,47 +27,164 @@ export const Tab = styled.div`
   }
 `;
 
-export const PageWrapper = styled.div`
+// Add these to src/Components/Container.js
+export const NavContainer = styled.nav`
+  width: 100%;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid #e0e0e0;
+  @media (max-width: 968px) {
+    position: relative;
+  }
+`;
+
+export const NavList = styled.ul`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #333;
-  h1 {
-    text-align: center;
+  @media (max-width: 968px) {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 60px;
+    transform: ${(props) =>
+      props.isOpen ? "translateX(0)" : "translateX(-100%)"};
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 80%;
+    background-color: white;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-in-out;
+    z-index: 100;
   }
+`;
 
-  .image-header {
-    text-align: center;
-    margin-bottom: 10px;
+export const NavItem = styled.li`
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #e10600;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: bottom right;
   }
-
-  .image-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
-  }
-
-  .image {
-    max-width: 100%;
-    height: auto;
-  }
-
-  .pagination-button {
-    background-color: rgb(255, 255, 255);
-    color: rgb(51, 51, 51);
-    border: 2px solid rgb(225, 6, 0);
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    font-size: 16px;
-    font-family: futura;
-
-    &:hover {
-      background-color: #e10600;
-      border: 2px solid #e10600;
-      color: #fff;
+  ${(props) =>
+    props.active &&
+    `
+    &::after {
+      transform: scaleX(1);
+      transform-origin: bottom left;
     }
+  `}
+  &:hover::after {
+    transform: scaleX(1);
+    transform-origin: bottom left;
+  }
+  @media (max-width: 968px) {
+    width: 100%;
+    &::after {
+      bottom: -5px;
+      height: 2px;
+    }
+  }
+`;
+
+export const NavLink = styled.a`
+  display: block;
+  padding: 1.2rem 1rem;
+  color: #333;
+  font-family: "Titillium Web", "Segoe UI", sans-serif;
+  font-weight: ${(props) => (props.active ? "600" : "400")};
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.2s;
+  &:hover {
+    color: #e10600;
+  }
+  ${(props) =>
+    props.active &&
+    `
+    color: #e10600;
+  `}
+  @media (max-width: 968px) {
+    padding: 1rem 2rem;
+    width: 100%;
+    font-size: 16px;
+  }
+`;
+
+export const MobileMenuButton = styled.button`
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 1rem;
+  @media (max-width: 968px) {
+    display: block;
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    z-index: 101;
+  }
+  span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    margin: 5px 0;
+    position: relative;
+    background: ${(props) => (props.isOpen ? "#e10600" : "#333")};
+    border-radius: 3px;
+    z-index: 1;
+    transform-origin: 4px 0px;
+    transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1),
+      background 0.5s cubic-bezier(0.77, 0.2, 0.05, 1), opacity 0.55s ease;
+    &:first-child {
+      transform-origin: 0% 0%;
+      transform: ${(props) =>
+        props.isOpen ? "rotate(45deg) translate(0, -1px)" : "none"};
+    }
+    &:nth-child(2) {
+      opacity: ${(props) => (props.isOpen ? "0" : "1")};
+      transform: ${(props) =>
+        props.isOpen ? "rotate(0deg) scale(0.2, 0.2)" : "none"};
+    }
+    &:nth-child(3) {
+      transform-origin: 0% 100%;
+      transform: ${(props) =>
+        props.isOpen ? "rotate(-45deg) translate(0, 1px)" : "none"};
+    }
+  }
+`;
+
+export const Overlay = styled.div`
+  display: none;
+  @media (max-width: 968px) {
+    display: ${(props) => (props.isOpen ? "block" : "none")};
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 99;
   }
 `;
 
@@ -236,7 +353,7 @@ export const Heading = styled.h1`
 
 export const FooterWrapper = styled.footer`
   width: 100%;
-  padding: 0.75rem 0;
+  padding: 0.4rem 0;
   background-color: #fff;
   color: #333;
   text-align: center;

@@ -71,7 +71,6 @@ export const Tab = styled.div`
   }
 `;
 
-// Add these to src/Components/Container.js
 export const NavContainer = styled.nav`
   width: 100%;
   background-color: #fff;
@@ -82,6 +81,7 @@ export const NavContainer = styled.nav`
   border-bottom: 1px solid #e0e0e0;
   @media (max-width: 968px) {
     position: relative;
+    border-bottom: none;
   }
 `;
 
@@ -184,8 +184,8 @@ export const MobileMenuButton = styled.button`
   @media (max-width: 968px) {
     display: block;
     position: absolute;
-    right: 1rem;
-    top: 1rem;
+    right: 0;
+    top: 0;
     z-index: 101;
   }
   span {

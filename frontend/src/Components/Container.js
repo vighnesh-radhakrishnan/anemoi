@@ -9,6 +9,50 @@ export const TabWrapper = styled.div`
   margin-bottom: 20px;
 `;
 
+export const PageWrapper = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+
+  h1 {
+    text-align: center;
+  }
+
+  .image-header {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .image-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .image {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .pagination-button {
+    background-color: rgb(255, 255, 255);
+    color: rgb(51, 51, 51);
+    border: 2px solid rgb(225, 6, 0);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 16px;
+    font-family: futura;
+    &:hover {
+      background-color: #e10600;
+      border: 2px solid #e10600;
+      color: #fff;
+    }
+  }
+`;
+
 export const Tab = styled.div`
   padding: 10px 20px;
   background-color: ${({ active }) => (active ? "#fff" : "#e10600")};

@@ -236,25 +236,34 @@ export const Heading = styled.h1`
 
 export const FooterWrapper = styled.footer`
   width: 100%;
-  padding: 2px;
-  background-color: rgb(244, 244, 244);
-  color: rgb(51, 51, 51);
+  padding: 0.75rem 0;
+  background-color: #fff;
+  color: #333;
   text-align: center;
-  font-size: 0.9rem;
-  border-top: 2px solid rgb(225, 6, 0);
+  font-size: 0.85rem;
+  font-family: "Titillium Web", "Segoe UI", sans-serif;
+  letter-spacing: 0.2px;
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
   position: fixed;
   bottom: 0;
   right: 0;
   left: 0;
+  z-index: 90;
+  border-top: 1px solid #e0e0e0;
+
+  @media (max-width: 968px) {
+    padding: 0.6rem 0;
+    font-size: 0.75rem;
+  }
 
   a {
-    text-decoration: none;
     color: #e10600;
-    font-weight: bold;
-    transition: color 0.3s ease;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
 
     &:hover {
-      color: #b00400;
+      text-decoration: underline;
     }
   }
 `;

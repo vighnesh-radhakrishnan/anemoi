@@ -35,20 +35,49 @@ export const PageWrapper = styled.div`
     max-width: 100%;
     height: auto;
   }
-
   .pagination-button {
-    background-color: rgb(255, 255, 255);
-    color: rgb(51, 51, 51);
-    border: 2px solid rgb(225, 6, 0);
-    border-radius: 5px;
+    background-color: #fff;
+    color: #333;
+    border: none;
+    border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s;
-    font-size: 16px;
-    font-family: futura;
-    &:hover {
+    padding: 8px 15px;
+    font-family: "Titillium Web", "Segoe UI", sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
       background-color: #e10600;
-      border: 2px solid #e10600;
-      color: #fff;
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+      transform-origin: bottom right;
+    }
+
+    &:hover {
+      color: #e10600;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+
+      &::after {
+        transform: scaleX(1);
+        transform-origin: bottom left;
+      }
+    }
+
+    &:active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
   }
 `;

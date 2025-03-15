@@ -267,40 +267,25 @@ export const FormWrapper = styled.form`
   gap: 15px;
   margin-bottom: 30px;
 
-  input {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    flex-grow: 1;
-    font-size: 16px;
-    font-family: futura;
+  input,
+  select {
+    padding: 10px 12px;
+    border: none;
+    border-radius: 4px;
+    font-family: "Titillium Web", "Segoe UI", sans-serif;
+    font-size: 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 1px 5px rgba(225, 6, 0, 0.2);
+      border-bottom: 2px solid #e10600;
+    }
   }
 
   input[type="number"] {
     width: 100px;
-  }
-
-  select {
-    display: flex;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    flex-grow: 1;
-    font-size: 16px;
-    font-family: futura;
-    background-color: #fff;
-    appearance: none;
-    cursor: pointer;
-
-    &:hover {
-      border-color: #e10600;
-    }
-
-    &:focus {
-      outline: none;
-      border-color: #e10600;
-      box-shadow: 0 0 5px rgba(225, 6, 0, 0.5);
-    }
   }
 
   button {

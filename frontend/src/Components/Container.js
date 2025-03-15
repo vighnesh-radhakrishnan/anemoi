@@ -277,19 +277,51 @@ export const FormWrapper = styled.form`
   button {
     padding: 10px 20px;
     white-space: nowrap;
-    background-color: #e10600;
-    color: #fff;
-    border: 2px solid #e10600;
-    border-radius: 5px;
+    background-color: #fff;
+    color: #333;
+    border: none;
+    border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
-    font-size: 16px;
-    font-family: futura;
+    font-family: "Titillium Web", "Segoe UI", sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background-color: #e10600;
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+      transform-origin: bottom right;
+    }
 
     &:hover {
-      background-color: #fff;
-      border: 2px solid #e10600;
-      color: #222;
+      color: #e10600;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+
+      &::after {
+        transform: scaleX(1);
+        transform-origin: bottom left;
+      }
+    }
+
+    &:active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    &:focus {
+      outline: none;
     }
   }
 `;

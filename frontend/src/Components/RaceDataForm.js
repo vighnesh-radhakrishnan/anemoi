@@ -1,6 +1,13 @@
+// src/Components/RaceDataForm.jsx
 import React from "react";
 import styled from "styled-components";
-import { FormWrapper } from "./Container";
+
+const FormContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  width: 100%;
+`;
 
 const RaceDataForm = ({
   selectedYear,
@@ -25,14 +32,8 @@ const RaceDataForm = ({
   const handleDriver1Change = (event) => setDriver1(event.target.value);
   const handleDriver2Change = (event) => setDriver2(event.target.value);
 
-  const handleButtonClick = () => {
-    // Create a synthetic event object since handleSubmit expects an event
-    const syntheticEvent = { preventDefault: () => {} };
-    handleSubmit(syntheticEvent);
-  };
-
   return (
-    <FormWrapper onSubmit={handleSubmit}>
+    <FormContainer>
       <input
         type="number"
         placeholder="Enter Year"
@@ -68,10 +69,16 @@ const RaceDataForm = ({
         onChange={handleDriver2Change}
         required
       />
-      <button type="button" onClick={handleButtonClick}>
-        Get Plot
-      </button>
-    </FormWrapper>
+      {showStint && (
+        <input
+          type="number"
+          placeholder="Enter Stint Number (default: 1)"
+          value={stint || "1"}
+          onChange={(e) => setStint(e.target.value)}
+        />
+      )}
+      <button type="submit">Get Plot</button>
+    </FormContainer>
   );
 };
 

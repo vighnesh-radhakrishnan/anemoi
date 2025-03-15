@@ -49,7 +49,7 @@ const TrackDominance = () => {
   return (
     <PageWrapper>
       <h1>Track Dominance</h1>
-      <FormWrapper onInput={() => setError(false)}>
+      <FormWrapper onSubmit={handleSubmit} onInput={() => setError(false)}>
         <RaceDataForm
           selectedYear={selectedYear}
           setSelectedYear={setSelectedYear}

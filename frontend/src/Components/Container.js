@@ -285,6 +285,18 @@ export const FormWrapper = styled.form`
     }
   }
 
+  select {
+    color: #757575;
+
+    option:first-child {
+      color: #757575;
+    }
+
+    option:not(:first-child) {
+      color: #333;
+    }
+  }
+
   input[type="number"] {
     width: 100px;
   }

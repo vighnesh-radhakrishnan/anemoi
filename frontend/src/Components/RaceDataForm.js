@@ -31,7 +31,7 @@ const RaceDataForm = ({
   };
 
   return (
-    <div className="race-data" style={{ display: "flex", gap: "15px" }}>
+    <FormWrapper onSubmit={handleSubmit}>
       <input
         type="number"
         placeholder="Enter Year"
@@ -70,7 +70,7 @@ const RaceDataForm = ({
       <button type="button" onClick={handleButtonClick}>
         Get Plot
       </button>
-    </div>
+    </FormWrapper>
   );
 };
 

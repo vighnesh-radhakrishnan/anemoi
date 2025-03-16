@@ -182,8 +182,8 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
             
         # Create figure with reduced size
         plt.rcParams['figure.figsize'] = [6, 6]
-        fig, ax = plt.subplots(facecolor='black')
-        ax.set_facecolor('black')
+        fig, ax = plt.subplots(facecolor='none')
+        ax.set_facecolor('none')  # Transparent background
         
         # Define speed ranges for legend
         speed_min = speed.min()
@@ -220,7 +220,7 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
             for speed in speed_levels
         ]
         
-        # Place legend outside the plot on the right with white text
+        # Place legend outside the plot on the right
         legend = ax.legend(handles=legend_elements,
                  loc='center left',
                  bbox_to_anchor=(1.05, 0.5),
@@ -228,9 +228,6 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
                  title='Speed',
                  title_fontsize=8,
                  fontsize=6)
-        for text in legend.get_texts():
-            text.set_color('white')
-        legend.get_title().set_color('white')
         
         # Save figure with optimized settings
         img_stream = io.BytesIO()
@@ -238,9 +235,9 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
                    format='png',
                    dpi=150,
                    bbox_inches='tight',
-                   facecolor='black',
+                   facecolor='none',
                    edgecolor='none',
-                   transparent=False,
+                   transparent=True,
                    pad_inches=0.2)
         plt.close()
         
@@ -250,7 +247,7 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
     except Exception as e:
         print(f"Error while plotting: {e}")
         return None
-    
+     
 @app.get("/circuits")
 async def get_circuits(
     year: int = None, 
@@ -640,8 +637,8 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
         
         # Create the plot with appropriate figure size
         plt.rcParams['figure.figsize'] = [6, 6]  # Smaller figure size
-        fig, ax = plt.subplots(facecolor='black')
-        ax.set_facecolor('black')  # Black background like F1 track maps
+        fig, ax = plt.subplots(facecolor='none')
+        ax.set_facecolor('none')  # Transparent background
         
         # Create line collection with custom coloring
         lc_comp = LineCollection(segments, norm=plt.Normalize(1, 2), cmap=custom_cmap)
@@ -660,19 +657,17 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
         ax.set_aspect('equal')
         ax.axis('off')
         
-        # Add custom legend with consistent colors and white text on black background
+        # Add custom legend with consistent colors
         legend_elements = [
             mlines.Line2D([0], [0], color=driver_colors[driver1], lw=2, label=driver1),
             mlines.Line2D([0], [0], color=driver_colors[driver2], lw=2, label=driver2)
         ]
         
-        # Place legend outside the plot on the right with white text
+        # Place legend outside the plot on the right
         legend = ax.legend(handles=legend_elements, 
                  loc='center left', 
                  bbox_to_anchor=(1.05, 0.5),
                  frameon=False)
-        for text in legend.get_texts():
-            text.set_color('white')
         
         # Save figure with adjusted layout and DPI
         img_stream = io.BytesIO()
@@ -680,9 +675,9 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
                    format='png', 
                    dpi=150,  # Lower DPI for smaller file size
                    bbox_inches='tight',
-                   facecolor='black',
+                   facecolor='none',
                    edgecolor='none',
-                   transparent=False,  # Set to false for consistent rendering
+                   transparent=True,  # Set to true for transparent background
                    pad_inches=0.2)
         plt.close()
         
@@ -693,7 +688,7 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
     except Exception as e:
         print(f"Error while plotting track dominance: {e}")
         return None
-    
+     
 @app.get("/driver-comparison")
 async def get_driver_comparison(year: int, gp: str, identifier: str, driver1: str, driver2: str, stint: int = 1):
     try:

@@ -170,49 +170,48 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
         x = telemetry["X"].to_numpy()
         y = telemetry["Y"].to_numpy()
         speed = telemetry["Speed"].to_numpy()
-
+        
         # Handle NaN values by removing them
         valid_indices = ~np.isnan(x) & ~np.isnan(y) & ~np.isnan(speed)
         x = x[valid_indices]
         y = y[valid_indices]
         speed = speed[valid_indices]
-
+        
         if len(x) == 0 or len(y) == 0 or len(speed) == 0:
             raise ValueError("No valid telemetry data available for plotting.")
-
-        # Create figure with same size as track dominance
-        plt.rcParams['figure.figsize'] = [8, 8]
-        fig, ax = plt.subplots(facecolor='none')
-        ax.set_facecolor('none')
-
+            
+        # Create figure with reduced size
+        plt.rcParams['figure.figsize'] = [6, 6]
+        fig, ax = plt.subplots(facecolor='black')
+        ax.set_facecolor('black')
+        
         # Define speed ranges for legend
         speed_min = speed.min()
         speed_max = speed.max()
-        speed_range = speed_max - speed_min
         
-        # Create custom colormap for speed
-        colors = ["#1f77b4", "#ff7f0e", "#2ca02c"]  # Blue to Orange to Green
-        custom_cmap = LinearSegmentedColormap.from_list("custom", colors)
-
+        # Create F1-themed colormap for speed (yellow-orange-red)
+        colors = ["#FFFF00", "#FF9900", "#e10600"]  # Yellow to orange to F1 red
+        custom_cmap = LinearSegmentedColormap.from_list("f1_colors", colors)
+        
         # Normalize speed for color mapping
         norm = plt.Normalize(speed_min, speed_max)
         points = np.array([x, y]).T.reshape(-1, 1, 2)
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
-
+        
         # Create line collection with custom coloring
-        lc = LineCollection(segments, cmap=custom_cmap, norm=norm, linewidth=3)
+        lc = LineCollection(segments, cmap=custom_cmap, norm=norm, linewidth=2.5)
         lc.set_array(speed)
         ax.add_collection(lc)
-
+        
         # Set proper axis limits with adjusted padding
         padding = (max(x.max() - x.min(), y.max() - y.min()) * 0.1)
         ax.set_xlim(x.min() - padding, x.max() + padding)
         ax.set_ylim(y.min() - padding, y.max() + padding)
-
+        
         # Set aspect ratio and turn off axis
         ax.set_aspect('equal')
         ax.axis('off')
-
+        
         # Create custom legend with speed ranges
         speed_levels = [speed_min, (speed_min + speed_max)/2, speed_max]
         legend_elements = [
@@ -220,36 +219,38 @@ def plot_fastest_lap_to_base64(telemetry, driver, gp, identifier, event_name):
                   lw=2, label=f'{int(speed)} km/h')
             for speed in speed_levels
         ]
-
-        # Place legend outside the plot on the right
-        ax.legend(handles=legend_elements,
+        
+        # Place legend outside the plot on the right with white text
+        legend = ax.legend(handles=legend_elements,
                  loc='center left',
                  bbox_to_anchor=(1.05, 0.5),
                  frameon=False,
                  title='Speed',
                  title_fontsize=8,
                  fontsize=6)
-
-        # Save figure with same settings as track dominance
+        for text in legend.get_texts():
+            text.set_color('white')
+        legend.get_title().set_color('white')
+        
+        # Save figure with optimized settings
         img_stream = io.BytesIO()
         plt.savefig(img_stream,
                    format='png',
-                   dpi=300,
+                   dpi=150,
                    bbox_inches='tight',
-                   facecolor='none',
+                   facecolor='black',
                    edgecolor='none',
-                   transparent=True,
-                   pad_inches=0.1)
+                   transparent=False,
+                   pad_inches=0.2)
         plt.close()
-
+        
         img_stream.seek(0)
         base64_img = base64.b64encode(img_stream.getvalue()).decode('utf-8')
         return base64_img
-
     except Exception as e:
         print(f"Error while plotting: {e}")
         return None
-
+    
 @app.get("/circuits")
 async def get_circuits(
     year: int = None, 
@@ -628,29 +629,30 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
         
         fastest_driver_array = telemetry_drivers['Fastest_driver_int'].to_numpy().astype(float)
         
-        # Define consistent colors for both drivers
+        # Define better F1-themed colors for both drivers
         driver_colors = {
-            driver1: "#1f77b4",  # Blue
-            driver2: "#ff7f0e"   # Orange
+            driver1: "#e10600",  # F1 Red
+            driver2: "#1f1f27"   # Dark navy/grey (from F1 design)
         }
         
         # Create custom colormap using the driver colors
         custom_cmap = ListedColormap([driver_colors[driver1], driver_colors[driver2]])
         
-        # Create the plot with adjusted figure size
-        plt.rcParams['figure.figsize'] = [8, 8]  # Make figure more compact and square
-        fig, ax = plt.subplots()
+        # Create the plot with appropriate figure size
+        plt.rcParams['figure.figsize'] = [6, 6]  # Smaller figure size
+        fig, ax = plt.subplots(facecolor='black')
+        ax.set_facecolor('black')  # Black background like F1 track maps
         
         # Create line collection with custom coloring
         lc_comp = LineCollection(segments, norm=plt.Normalize(1, 2), cmap=custom_cmap)
         lc_comp.set_array(fastest_driver_array)
-        lc_comp.set_linewidth(3)  # Slightly reduced line width
+        lc_comp.set_linewidth(2.5)  # Slightly thinner lines
         
         # Add the line collection to the plot
         ax.add_collection(lc_comp)
         
         # Set proper axis limits with adjusted padding
-        padding = (max(x.max() - x.min(), y.max() - y.min()) * 0.1)  # 10% padding
+        padding = (max(x.max() - x.min(), y.max() - y.min()) * 0.1)
         ax.set_xlim(x.min() - padding, x.max() + padding)
         ax.set_ylim(y.min() - padding, y.max() + padding)
         
@@ -658,29 +660,30 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
         ax.set_aspect('equal')
         ax.axis('off')
         
-        # Add custom legend with consistent colors
+        # Add custom legend with consistent colors and white text on black background
         legend_elements = [
             mlines.Line2D([0], [0], color=driver_colors[driver1], lw=2, label=driver1),
             mlines.Line2D([0], [0], color=driver_colors[driver2], lw=2, label=driver2)
         ]
         
-        # Place legend outside the plot on the right
-        ax.legend(handles=legend_elements, 
+        # Place legend outside the plot on the right with white text
+        legend = ax.legend(handles=legend_elements, 
                  loc='center left', 
                  bbox_to_anchor=(1.05, 0.5),
                  frameon=False)
-    
+        for text in legend.get_texts():
+            text.set_color('white')
         
-        # Save figure with adjusted layout
+        # Save figure with adjusted layout and DPI
         img_stream = io.BytesIO()
         plt.savefig(img_stream, 
                    format='png', 
-                   dpi=300, 
-                   bbox_inches='tight',  # Tight layout
-                   facecolor='none',    # White background
+                   dpi=150,  # Lower DPI for smaller file size
+                   bbox_inches='tight',
+                   facecolor='black',
                    edgecolor='none',
-                   transparent=True,  # Non-transparent background
-                   pad_inches=0.1)       # padding around the plot
+                   transparent=False,  # Set to false for consistent rendering
+                   pad_inches=0.2)
         plt.close()
         
         img_stream.seek(0)
@@ -690,7 +693,7 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
     except Exception as e:
         print(f"Error while plotting track dominance: {e}")
         return None
-
+    
 @app.get("/driver-comparison")
 async def get_driver_comparison(year: int, gp: str, identifier: str, driver1: str, driver2: str, stint: int = 1):
     try:

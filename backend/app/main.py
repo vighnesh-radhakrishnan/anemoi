@@ -630,8 +630,8 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
         
         # Define consistent colors for both drivers
         driver_colors = {
-             driver1: "#e10600",  # F1 Red
-             driver2: "#1f1f27"   # Dark grey/navy
+            driver1: "#1f77b4",  # Blue
+            driver2: "#ff7f0e"   # Orange
         }
         
         # Create custom colormap using the driver colors
@@ -674,13 +674,13 @@ def plot_track_dominance_to_base64(telemetry_drivers, driver1, driver2, year, gp
         # Save figure with adjusted layout
         img_stream = io.BytesIO()
         plt.savefig(img_stream, 
-           format='png', 
-           dpi=200, 
-           bbox_inches='tight',
-           facecolor='none',
-           edgecolor='none',
-           transparent=True,
-           pad_inches=0.1)
+                   format='png', 
+                   dpi=300, 
+                   bbox_inches='tight',  # Tight layout
+                   facecolor='none',    # White background
+                   edgecolor='none',
+                   transparent=True,  # Non-transparent background
+                   pad_inches=0.1)       # padding around the plot
         plt.close()
         
         img_stream.seek(0)

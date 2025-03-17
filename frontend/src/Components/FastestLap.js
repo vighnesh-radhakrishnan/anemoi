@@ -134,10 +134,6 @@ const FastestLap = () => {
 
           {fastestLapData.image_base64 && (
             <div>
-              <h2 className="image-header">
-                {fastestLapData.session.GrandPrix} Fastest Lap:{" "}
-                {fastestLapData.session.Driver}
-              </h2>
               <div className="image-container">
                 <img
                   className="image"

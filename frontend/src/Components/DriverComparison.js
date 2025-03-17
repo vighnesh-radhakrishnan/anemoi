@@ -107,10 +107,6 @@ const DriverComparison = () => {
           </SessionDetails>
           {comparisonData.image_base64 && (
             <div>
-              <h2 className="image-header">
-                Driver Comparison: {comparisonData.driver1} vs{" "}
-                {comparisonData.driver2}
-              </h2>
               <div className="image-container">
                 <img
                   className="image"

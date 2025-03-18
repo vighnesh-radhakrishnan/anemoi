@@ -97,7 +97,7 @@ const Session = () => {
           style={{
             display: "flex",
             justifyContent: "center",
-            marginTop: "50px",
+            marginTop: "70px",
           }}
         >
           <img src={LoadingGif} alt="Loading..." width="150" height="150" />

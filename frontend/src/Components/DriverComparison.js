@@ -48,7 +48,7 @@ const DriverComparison = () => {
 
   return (
     <PageWrapper>
-      <h1>Driver Comparison Analysis</h1>
+      <h1>Driver Performace Comparison</h1>
       <FormWrapper onSubmit={handleSubmit} onInput={() => setError(false)}>
         <RaceDataForm
           selectedYear={selectedYear}

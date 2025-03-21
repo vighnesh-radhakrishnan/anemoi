@@ -82,7 +82,7 @@ const Constructors = () => {
 
   return (
     <PageWrapper>
-      <Heading>Constructors</Heading>
+      <Heading>Constructor Overview</Heading>
 
       <FormWrapper onSubmit={handleSubmit}>
         <input

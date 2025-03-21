@@ -82,7 +82,7 @@ const Circuits = () => {
 
   return (
     <PageWrapper>
-      <Heading>Circuits</Heading>
+      <Heading>Race Circuits</Heading>
 
       <FormWrapper onSubmit={handleSubmit}>
         <input

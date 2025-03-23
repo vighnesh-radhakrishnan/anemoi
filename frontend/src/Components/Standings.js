@@ -62,7 +62,7 @@ const Standing = () => {
 
   return (
     <PageWrapper>
-      <h1>Standings Data</h1>
+      <h1>Driver/Constructor Standings</h1>
 
       <FormWrapper
         onSubmit={handleSubmit}

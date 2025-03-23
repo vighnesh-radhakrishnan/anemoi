@@ -60,7 +60,7 @@ const Session = () => {
 
   return (
     <PageWrapper>
-      <h1>Session Data</h1>
+      <h1>Session Overview</h1>
 
       <FormWrapper
         onSubmit={handleSubmit}

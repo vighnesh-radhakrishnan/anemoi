@@ -138,7 +138,7 @@ const Session = () => {
               </span>
             </div>
             <div>
-              <strong>Date</strong>
+              <strong>Date & Time</strong>
               <span>{sessionData.session.Date}</span>
             </div>
             <div>

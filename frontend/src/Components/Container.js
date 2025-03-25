@@ -8,10 +8,10 @@ export const TabWrapper = styled.div`
   gap: 20px;
   margin-bottom: 20px;
 
-  /* @media (max-width: 768px) {
+  @media (max-width: 768px) {
     gap: 10px;
     margin-bottom: 15px;
-  } */
+  }
 `;
 
 export const PageWrapper = styled.div`
@@ -196,7 +196,7 @@ export const NavItem = styled.li`
     transform-origin: bottom left;
   }
   @media (max-width: 968px) {
-    width: 35%;
+    width: 45%;
     &::after {
       bottom: -5px;
       height: 2px;
@@ -247,6 +247,7 @@ export const MobileMenuButton = styled.button`
     display: block;
     position: absolute;
     right: 10px;
+    margin-top: -15px;
     top: 0;
     z-index: 101;
   }

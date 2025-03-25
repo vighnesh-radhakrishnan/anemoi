@@ -88,7 +88,7 @@ export const PageWrapper = styled.div`
 
   @media (max-width: 768px) {
     padding: 10px;
-    /* padding-bottom: 10px; */
+    padding-bottom: 10px;
 
     h1 {
       font-size: 1.5rem;

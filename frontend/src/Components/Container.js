@@ -201,6 +201,11 @@ export const NavItem = styled.li`
       height: 2px;
     }
   }
+
+  @media (max-width: 968px) {
+    width: 100%;
+    margin: 5px 0;
+  }
 `;
 
 export const NavLink = styled.a`
@@ -424,6 +429,15 @@ export const SessionDetails = styled.div`
     color: #222;
     text-align: center;
   }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    padding: 15px 10px;
+
+    div {
+      margin: 5px 0;
+    }
+  }
 `;
 
 export const TableWrapper = styled.div`
@@ -480,6 +494,25 @@ export const StyledTable = styled.table`
   .linked-name {
     text-decoration: none;
   }
+
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+
+    th,
+    td {
+      padding: 10px 5px;
+    }
+
+    .driver-info {
+      gap: 5px;
+
+      img,
+      svg {
+        width: 30px;
+        height: 30px;
+      }
+    }
+  }
 `;
 
 export const NoDataMessage = styled.p`
@@ -487,12 +520,21 @@ export const NoDataMessage = styled.p`
   text-align: center;
   color: #888;
   font-size: 1.1rem;
+
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+  }
 `;
 
 export const Heading = styled.h1`
   text-align: center;
   font-size: 2rem;
   color: #333;
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+    margin: 15px 0;
+  }
 `;
 
 export const FooterWrapper = styled.footer`

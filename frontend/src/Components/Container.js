@@ -378,6 +378,20 @@ export const FormWrapper = styled.form`
       outline: none;
     }
   }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 10px;
+
+    input[type="number"] {
+      width: 100%;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+    }
+  }
 `;
 
 export const SessionDetails = styled.div`

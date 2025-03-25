@@ -8,10 +8,10 @@ export const TabWrapper = styled.div`
   gap: 20px;
   margin-bottom: 20px;
 
-  @media (max-width: 768px) {
+  /* @media (max-width: 768px) {
     gap: 10px;
     margin-bottom: 15px;
-  }
+  } */
 `;
 
 export const PageWrapper = styled.div`
@@ -88,6 +88,7 @@ export const PageWrapper = styled.div`
 
   @media (max-width: 768px) {
     padding: 10px;
+    /* padding-bottom: 10px; */
 
     h1 {
       font-size: 1.5rem;
@@ -201,11 +202,11 @@ export const NavItem = styled.li`
       height: 2px;
     }
   }
-
+  /* 
   @media (max-width: 968px) {
     width: 100%;
     margin: 5px 0;
-  }
+  } */
 `;
 
 export const NavLink = styled.a`
@@ -398,11 +399,11 @@ export const FormWrapper = styled.form`
     }
 
     select {
-      width: 100%;
+      width: 96%;
     }
 
     button {
-      width: 50%;
+      width: 60%;
       padding: 12px;
     }
   }

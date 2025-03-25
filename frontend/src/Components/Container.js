@@ -213,7 +213,7 @@ export const MobileMenuButton = styled.button`
   @media (max-width: 968px) {
     display: block;
     position: absolute;
-    right: 0;
+    right: 10px;
     top: 0;
     z-index: 101;
   }

@@ -387,13 +387,14 @@ export const FormWrapper = styled.form`
   @media (max-width: 768px) {
     flex-direction: column;
     gap: 10px;
+    align-items: center;
 
     input[type="number"] {
-      width: 100%;
+      width: 90%;
     }
 
     button {
-      width: 100%;
+      width: 50%;
       padding: 12px;
     }
   }

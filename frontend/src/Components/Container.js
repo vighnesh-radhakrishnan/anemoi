@@ -393,6 +393,14 @@ export const FormWrapper = styled.form`
       width: 90%;
     }
 
+    input[type="text"] {
+      width: 90%;
+    }
+
+    select {
+      width: 100%;
+    }
+
     button {
       width: 50%;
       padding: 12px;

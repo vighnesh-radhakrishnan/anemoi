@@ -80,6 +80,23 @@ export const PageWrapper = styled.div`
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
   }
+
+  @media (max-width: 768px) {
+    padding: 10px;
+
+    h1 {
+      font-size: 1.5rem;
+    }
+
+    .image-container {
+      margin-top: 10px;
+    }
+
+    .pagination-button {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+  }
 `;
 
 export const Tab = styled.div`

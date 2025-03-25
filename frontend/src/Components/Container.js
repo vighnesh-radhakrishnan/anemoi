@@ -7,6 +7,11 @@ export const TabWrapper = styled.div`
   flex-wrap: wrap;
   gap: 20px;
   margin-bottom: 20px;
+
+  @media (max-width: 768px) {
+    gap: 10px;
+    margin-bottom: 15px;
+  }
 `;
 
 export const PageWrapper = styled.div`
@@ -114,6 +119,11 @@ export const Tab = styled.div`
     background-color: #fff;
     border: 2px solid #e10600;
     color: #222;
+  }
+
+  @media (max-width: 768px) {
+    padding: 8px 15px;
+    font-size: 14px;
   }
 `;
 

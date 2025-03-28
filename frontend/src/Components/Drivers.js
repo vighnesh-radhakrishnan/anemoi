@@ -171,7 +171,7 @@ const Drivers = () => {
             </StyledTable>
           </TableWrapper>
 
-          <div style={{ textAlign: "center", marginTop: "20px" }}>
+          <div className="pagination-container">
             <button
               className="pagination-button"
               onClick={() => handlePageChange(currentPage - 1)}

@@ -40,6 +40,12 @@ export const PageWrapper = styled.div`
     max-width: 100%;
     height: auto;
   }
+
+  .pagination-container {
+    margin-top: 20px;
+    text-align: center;
+  }
+
   .pagination-button {
     background-color: #fff;
     color: #333;
@@ -101,6 +107,10 @@ export const PageWrapper = styled.div`
     .pagination-button {
       padding: 6px 12px;
       font-size: 12px;
+    }
+    .pagination-container {
+      margin-top: 10px;
+      margin-bottom: 30px;
     }
   }
 `;
@@ -585,4 +595,9 @@ export const FooterWrapper = styled.footer`
       text-decoration: underline;
     }
   }
+`;
+
+export const Pagination = styled.div`
+  padding-top: 20px;
+  text-align: center;
 `;

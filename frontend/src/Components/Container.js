@@ -570,6 +570,11 @@ export const FooterWrapper = styled.footer`
     font-size: 0.75rem;
   }
 
+  @media (max-width: 768px) {
+    padding: 0.2rem 0;
+    font-size: 0.75rem;
+  }
+
   a {
     color: #e10600;
     text-decoration: none;

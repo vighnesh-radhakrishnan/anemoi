@@ -596,8 +596,3 @@ export const FooterWrapper = styled.footer`
     }
   }
 `;
-
-export const Pagination = styled.div`
-  padding-top: 20px;
-  text-align: center;
-`;

@@ -452,11 +452,21 @@ export const SessionDetails = styled.div`
   }
 
   @media (max-width: 768px) {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
     padding: 15px 10px;
 
     div {
       margin: 5px 0;
+    }
+
+    strong {
+      font-size: 0.7rem;
+    }
+
+    span {
+      font-size: 0.7rem;
     }
   }
 `;

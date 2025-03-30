@@ -612,4 +612,27 @@ export const FormContainer = styled.div`
   flex-direction: row;
   gap: 15px;
   width: 100%;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+
+    input[type="number"] {
+      width: 90%;
+    }
+
+    input[type="text"] {
+      width: 90%;
+    }
+
+    select {
+      width: 96%;
+    }
+
+    button {
+      width: 60%;
+      padding: 12px;
+    }
+  }
 `;

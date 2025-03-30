@@ -17,6 +17,8 @@ import {
   MobileMenuButton,
   Overlay,
 } from "./Components/Container";
+import { ReactComponent as MenuOpenIcon } from "./Icons/menuOpenIcon.svg";
+import { ReactComponent as MenuCloseIcon } from "./Icons/menuCloseIcon.svg";
 import Footer from "./Components/Footer";
 
 function App() {

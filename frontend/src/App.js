@@ -39,9 +39,7 @@ function App() {
               isOpen={mobileMenuOpen}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              <span></span>
-              <span></span>
-              <span></span>
+              {mobileMenuOpen ? <MenuCloseIcon /> : <MenuOpenIcon />}
             </MobileMenuButton>
             <Overlay
               isOpen={mobileMenuOpen}

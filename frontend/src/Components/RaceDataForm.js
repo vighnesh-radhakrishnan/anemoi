@@ -1,13 +1,4 @@
-// src/Components/RaceDataForm.jsx
 import React from "react";
-import styled from "styled-components";
-
-const FormContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  gap: 15px;
-  width: 100%;
-`;
 
 const RaceDataForm = ({
   selectedYear,

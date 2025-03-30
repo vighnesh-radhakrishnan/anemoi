@@ -266,8 +266,8 @@ export const MobileMenuButton = styled.button`
   }
 
   svg {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     fill: ${(props) => (props.isOpen ? "#e10600" : "#333")};
     transition: fill 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
     position: absolute;

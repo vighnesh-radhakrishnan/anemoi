@@ -252,42 +252,23 @@ export const MobileMenuButton = styled.button`
   background: none;
   border: none;
   cursor: pointer;
-  padding: 1rem;
+  padding: 0.8rem;
+
   @media (max-width: 968px) {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     position: absolute;
     right: 10px;
-    margin-top: -15px;
-    top: 0;
+    top: 5px;
     z-index: 101;
   }
-  span {
-    display: block;
-    width: 25px;
-    height: 3px;
-    margin: 5px 0;
-    position: relative;
-    background: ${(props) => (props.isOpen ? "#e10600" : "#333")};
-    border-radius: 3px;
-    z-index: 1;
-    transform-origin: 4px 0px;
-    transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1),
-      background 0.5s cubic-bezier(0.77, 0.2, 0.05, 1), opacity 0.55s ease;
-    &:first-child {
-      transform-origin: 0% 0%;
-      transform: ${(props) =>
-        props.isOpen ? "rotate(45deg) translate(0, -1px)" : "none"};
-    }
-    &:nth-child(2) {
-      opacity: ${(props) => (props.isOpen ? "0" : "1")};
-      transform: ${(props) =>
-        props.isOpen ? "rotate(0deg) scale(0.2, 0.2)" : "none"};
-    }
-    &:nth-child(3) {
-      transform-origin: 0% 100%;
-      transform: ${(props) =>
-        props.isOpen ? "rotate(-45deg) translate(0, 1px)" : "none"};
-    }
+
+  .menu-icon {
+    width: 24px;
+    height: 24px;
+    fill: ${(props) => (props.isOpen ? "#e10600" : "#333")};
+    transition: fill 0.3s ease;
   }
 `;
 

@@ -253,6 +253,7 @@ export const MobileMenuButton = styled.button`
   border: none;
   cursor: pointer;
   padding: 0.8rem;
+  position: relative;
 
   @media (max-width: 968px) {
     display: flex;
@@ -264,11 +265,22 @@ export const MobileMenuButton = styled.button`
     z-index: 101;
   }
 
-  .menu-icon {
+  svg {
     width: 24px;
     height: 24px;
     fill: ${(props) => (props.isOpen ? "#e10600" : "#333")};
-    transition: fill 0.3s ease;
+    transition: fill 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+    position: absolute;
+  }
+
+  .menu-open-icon {
+    opacity: ${(props) => (props.isOpen ? 0 : 1)};
+    transform: ${(props) => (props.isOpen ? "rotate(90deg)" : "rotate(0)")};
+  }
+
+  .menu-close-icon {
+    opacity: ${(props) => (props.isOpen ? 1 : 0)};
+    transform: ${(props) => (props.isOpen ? "rotate(0)" : "rotate(-90deg)")};
   }
 `;
 

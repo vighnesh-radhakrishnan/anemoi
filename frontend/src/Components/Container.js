@@ -606,3 +606,10 @@ export const FooterWrapper = styled.footer`
     }
   }
 `;
+
+export const FormContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  width: 100%;
+`;

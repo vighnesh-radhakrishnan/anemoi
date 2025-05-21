@@ -8,6 +8,7 @@ import {
   TableWrapper,
   StyledTable,
   NoDataMessage,
+  InitialLoadMessage,
   Heading,
 } from "./Container";
 import LoadingGif from "../Icons/loading.gif";
@@ -57,12 +58,16 @@ const Calendar = () => {
           }}
         >
           <img src={LoadingGif} alt="Loading..." width="150" height="150" />
-          <p>The first load may take up to a minute as the server wakes up</p>
+          <NoDataMessage>
+            The first load may take up to a minute as the server wakes up
+          </NoDataMessage>
         </div>
       )}
 
       {!loading && events.length === 0 && selectedYear && (
-        <NoDataMessage>No events found for the selected year.</NoDataMessage>
+        <InitialLoadMessage>
+          No events found for the selected year.
+        </InitialLoadMessage>
       )}
 
       {!loading && events.length > 0 && (

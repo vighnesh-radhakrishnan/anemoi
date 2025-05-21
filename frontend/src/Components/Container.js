@@ -550,6 +550,17 @@ export const NoDataMessage = styled.p`
   }
 `;
 
+export const InitialLoadMessage = styled.p`
+  margin-top: 50px;
+  text-align: center;
+  color: #888;
+  font-size: 1rem;
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+  }
+`;
+
 export const Heading = styled.h1`
   text-align: center;
   font-size: 2rem;

@@ -57,6 +57,7 @@ const Calendar = () => {
           }}
         >
           <img src={LoadingGif} alt="Loading..." width="150" height="150" />
+          <p>The first load may take up to a minute as the server wakes up</p>
         </div>
       )}
 

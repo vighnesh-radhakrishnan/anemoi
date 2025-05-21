@@ -9,6 +9,7 @@ import {
   TableWrapper,
   StyledTable,
   SessionDetails,
+  InitialLoadMessage,
   NoDataMessage,
 } from "./Container"; // Importing styled divs from `container.js`
 
@@ -101,6 +102,9 @@ const Session = () => {
           }}
         >
           <img src={LoadingGif} alt="Loading..." width="150" height="150" />
+          <InitialLoadMessage>
+            The first load may take up to a minute as the server wakes up.
+          </InitialLoadMessage>
         </div>
       )}
       {/* {error && <p style={{ color: "red" }}>{error}</p>} */}

@@ -58,16 +58,14 @@ const Calendar = () => {
           }}
         >
           <img src={LoadingGif} alt="Loading..." width="150" height="150" />
-          <NoDataMessage>
-            The first load may take up to a minute as the server wakes up
-          </NoDataMessage>
+          <InitialLoadMessage>
+            The first load may take up to a minute as the server wakes up.
+          </InitialLoadMessage>
         </div>
       )}
 
       {!loading && events.length === 0 && selectedYear && (
-        <InitialLoadMessage>
-          No events found for the selected year.
-        </InitialLoadMessage>
+        <NoDataMessage>No events found for the selected year.</NoDataMessage>
       )}
 
       {!loading && events.length > 0 && (

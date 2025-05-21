@@ -6,6 +6,7 @@ import {
   TableWrapper,
   StyledTable,
   NoDataMessage,
+  InitialLoadMessage,
   Heading,
 } from "./Container";
 import LoadingGif from "../Icons/loading.gif";
@@ -126,6 +127,9 @@ const Constructors = () => {
           }}
         >
           <img src={LoadingGif} alt="Loading..." width="150" height="150" />
+          <InitialLoadMessage>
+            The first load may take up to a minute as the server wakes up.
+          </InitialLoadMessage>
         </div>
       )}
       {!loading && constructors.length === 0 && (

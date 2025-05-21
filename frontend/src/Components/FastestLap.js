@@ -6,6 +6,7 @@ import {
   PageWrapper,
   FormWrapper,
   NoDataMessage,
+  InitialLoadMessage,
   SessionDetails,
 } from "./Container";
 
@@ -100,6 +101,10 @@ const FastestLap = () => {
           }}
         >
           <img src={LoadingGif} alt="Loading..." width="150" height="150" />
+          <InitialLoadMessage>
+            Loading telemetry data and generating visualizations. This may take
+            a few moments.
+          </InitialLoadMessage>
         </div>
       )}
 

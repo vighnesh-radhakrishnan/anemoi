@@ -8,6 +8,7 @@ import {
   TableWrapper,
   StyledTable,
   NoDataMessage,
+  InitialLoadMessage,
 } from "./Container"; // Importing styled divs from `container.js`
 
 const SectionHeading = styled.h2`
@@ -94,6 +95,9 @@ const Standing = () => {
           }}
         >
           <img src={LoadingGif} alt="Loading..." width="150" height="150" />
+          <InitialLoadMessage>
+            The first load may take up to a minute as the server wakes up.
+          </InitialLoadMessage>
         </div>
       )}
 

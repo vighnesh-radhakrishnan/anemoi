@@ -123,6 +123,8 @@ const Constructors = () => {
           style={{
             display: "flex",
             justifyContent: "center",
+            alignItems: "center",
+            flexDirection: "column",
             marginTop: "70px",
           }}
         >

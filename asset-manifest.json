@@ -1,17 +1,17 @@
 {
   "files": {
     "main.css": "/anemoi/static/css/main.93a0497a.css",
-    "main.js": "/anemoi/static/js/main.85ded59e.js",
+    "main.js": "/anemoi/static/js/main.ae4b564c.js",
     "static/media/loading.gif": "/anemoi/static/media/loading.c2277c882c5ae3691da9.gif",
     "static/media/avatar.svg": "/anemoi/static/media/avatar.acf477969caaa369bb1969d1c6f20927.svg",
     "index.html": "/anemoi/index.html",
     "static/media/menuCloseIcon.svg": "/anemoi/static/media/menuCloseIcon.99ca7cd5191cb1098195c876e0b305b8.svg",
     "static/media/menuOpenIcon.svg": "/anemoi/static/media/menuOpenIcon.08257a5d3177ead0a53eb9266ecb5b94.svg",
     "main.93a0497a.css.map": "/anemoi/static/css/main.93a0497a.css.map",
-    "main.85ded59e.js.map": "/anemoi/static/js/main.85ded59e.js.map"
+    "main.ae4b564c.js.map": "/anemoi/static/js/main.ae4b564c.js.map"
   },
   "entrypoints": [
     "static/css/main.93a0497a.css",
-    "static/js/main.85ded59e.js"
+    "static/js/main.ae4b564c.js"
   ]
 }

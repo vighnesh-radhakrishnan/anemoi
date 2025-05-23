@@ -154,16 +154,19 @@ export const NavContainer = styled.nav`
 
 export const NavList = styled.ul`
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
   align-items: center;
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0 10px;
   max-width: 1200px;
   margin: 0 auto;
+  flex-wrap: wrap;
+  gap: 0;
   @media (max-width: 968px) {
     flex-direction: column;
     align-items: flex-start;
+    justify-content: space-around;
     padding-top: 60px;
     transform: ${(props) =>
       props.isOpen ? "translateX(0)" : "translateX(-100%)"};
@@ -171,7 +174,7 @@ export const NavList = styled.ul`
     top: 0;
     left: 0;
     height: 100vh;
-    width: 80%;
+    width: 50%;
     background-color: white;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease-in-out;
@@ -221,7 +224,7 @@ export const NavItem = styled.li`
 
 export const NavLink = styled.a`
   display: block;
-  padding: 1.2rem 1rem;
+  padding: 1.2rem 0.5rem; /* Reduced horizontal padding */
   color: #333;
   font-family: "Titillium Web", "Segoe UI", sans-serif;
   font-weight: ${(props) => (props.active ? "600" : "400")};
@@ -232,6 +235,10 @@ export const NavLink = styled.a`
   cursor: pointer;
   white-space: nowrap;
   transition: color 0.2s;
+  text-align: center;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   &:hover {
     color: #e10600;
   }
@@ -240,6 +247,12 @@ export const NavLink = styled.a`
     `
     color: #e10600;
   `}
+
+  @media (max-width: 1100px) and (min-width: 969px) {
+    padding: 1.2rem 0.3rem;
+    font-size: 13px; /* Slightly smaller font */
+  }
+
   @media (max-width: 968px) {
     padding: 1rem 2rem;
     width: 100%;
